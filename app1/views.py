@@ -30931,7 +30931,7 @@ def create_item(request):
             iinv = request.POST.get('invacc')
             istock = request.POST.get('stock')
             istatus = request.POST['status']
-            stockrate = request.POST['stock_rate']#reshna added
+            stockrate = request.POST.get('stock_rate')#reshna added
             item = itemtable(name=iname,item_type=itype,unit=iunit,
                                 hsn=ihsn,tax_reference=itax,
                                 purchase_cost=ipcost,
@@ -31044,9 +31044,7 @@ def update_item(request, id):
             item.inventry = request.POST.get('invacc')
             item.stock = request.POST.get('stock')
             item.status = request.POST.get('status')
-            item.stock_rate= request.POST.get('stock_rate')#reshna added
-           
-
+            item.stock_rate = request.POST.get('stock_rate')#reshna added
             item.save()
             return redirect('goitem')
         return render(request,'app1/item_view.html',{'cmp1': cmp1})    
