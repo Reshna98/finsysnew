@@ -1139,7 +1139,10 @@ urlpatterns = [
     # # recurring_bills-Reshna-end
     path('sales_by_customer',views.sales_by_customer,name='sales_by_customer'),
     path('sales_by_item',views.sales_by_item,name='sales_by_item'),
- 
+    # reshna-holidays
+    path('holidayss',views.holidayss,name='holidayss'),
+    path('addholidays',views.addholidays,name='addholidays'),
+  
      
      
 ]

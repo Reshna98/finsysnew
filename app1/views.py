@@ -44349,3 +44349,81 @@ def sales_by_item(request):
         "cmp1":cmp1,
     }
     return render(request,'app1/sales_by_item.html',context)
+
+
+# @login_required(login_url='regcomp')
+# def holidayss(request):
+#     cmp1 = company.objects.get(id=request.session['uid'])
+#     context={
+#         "cmp1":cmp1,
+#     }
+#     return render(request,'app1/holidays.html',context)
+# def holidayss(request):
+#     cmp1 = company.objects.get(id=request.session['uid'])
+    
+#     # Retrieve and convert holiday data into FullCalendar events
+#     holidayy = holidays.objects.filter(cid=cmp1)
+#     holiday_events = []
+
+#     for holiday in holidayy:
+#         event = {
+#             'title': holiday.name,
+#             'start': holiday.start_date.isoformat(),
+#             'end': holiday.end_date.isoformat(),
+#         }
+#         holiday_events.append(event)
+
+#     context = {
+#         "cmp1": cmp1,
+#         "holiday_events": json.dumps(holiday_events),  # Serialize the event data to JSON
+#     }
+
+#     return render(request, 'app1/holidays.html', context)
+def holidayss(request):
+    cmp1 = company.objects.get(id=request.session['uid'])
+    
+    # Retrieve and convert holiday data into FullCalendar events
+    holidayy = holidays.objects.filter(cid=cmp1)
+    holiday_events = []
+
+    for holiday in holidayy:
+        # Calculate the date range for the holiday
+        date_range = [holiday.start_date + timedelta(days=i) for i in range((holiday.end_date - holiday.start_date).days + 1)]
+
+        # Create separate events for each date in the range
+        for date in date_range:
+            event = {
+                'title': holiday.name,
+                'start': date.isoformat(),
+                'end': date.isoformat(),
+            }
+            holiday_events.append(event)
+
+    context = {
+        "cmp1": cmp1,
+        "holiday_events": json.dumps(holiday_events),  # Serialize the event data to JSON
+        "holiday":holidayy,
+    }
+
+    return render(request, 'app1/holidays.html', context)
+
+
+ 
+def addholidays(request):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+        cmp1 = company.objects.get(id=request.session['uid'])
+        if request.method == 'POST':
+            name = request.POST.get('name')
+            start_date=request.POST.get('start_date')
+            end_date=request.POST.get('end_date')
+          
+            hdays = holidays(name=name,start_date=start_date,end_date=end_date,cid=cmp1)
+            hdays.save()
+        return redirect('holidayss')
+        return render(request,'app1/holidays.html',{'cmp1': cmp1})
+    return redirect('/')
+

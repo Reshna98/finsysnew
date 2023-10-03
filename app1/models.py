@@ -2170,3 +2170,11 @@ class recurringbill_item(models.Model):
 class repeatevery(models.Model):
     cid = models.ForeignKey(company, on_delete=models.CASCADE,null=True)
     repeat=models.CharField(max_length=100,null=True,blank=True)  
+
+#reshna-holidays#
+class holidays(models.Model):
+    cid = models.ForeignKey(company, on_delete=models.CASCADE,null=True)
+    hid = models.AutoField(('hid'), primary_key=True)
+    start_date = models.DateField(null=True,blank=True)
+    end_date = models.DateField(null=True,blank=True)
+    name = models.CharField(max_length=100,null=True,blank=True)
