@@ -2,27 +2,44 @@
 {% block body %}
       {% load static %}
     
-      <style>
-      /* .custom-button{
-
-
-      } */
-
+    <style>
         tr:hover{
             cursor: pointer;
             background-color: rgba(0, 0, 0, 0.1);
         }
+    @media print {
+    .chart-container[size="A4"] {
+        width: 21cm;
+        height: 29.7cm;
+    }
+    
+    body * {
+        visibility: hidden;
+    }
+
+    header {
+        display: none;
+    }
+
+    .chart-container * {
+        visibility: visible;
+    }
+
+    .chart-container {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        height: auto;
+        page-break-before: always;
+        page-break-inside: avoid;
+        color: black;
+    }}
     </style>
     <link href="{% static 'assets/plugins/fullcalendar/css/main.min.css' %}" rel="stylesheet">
     <script src="{% static 'assets/plugins/fullcalendar/js/main.min.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
-    <!-- <link href="{% static 'assets/plugins/apexcharts-bundle/css/apexcharts.css' %}" rel="stylesheet">
-    <script src="{% static 'assets/plugins/apexcharts-bundle/js/apex-custom.js' %}"></script>
-    <script src="{% static 'assets/plugins/apexcharts-bundle/js/apexcharts.min.js' %}"></script> -->
-    <!-- <script src="{% static 'assets/plugins/chartjs/js/Chart.min.js' %}"></script>
-    <script src="{% static 'assets/plugins/chartjs/js/chartjs-custom.js' %}"></script> -->
     <div class="page-content">
         <div class="card radius-15">
             <div class="card-body">
@@ -38,10 +55,10 @@
                         <button id="exportBtn" class="btn btn-outline-info custom-button" style="color: white;"  data-target="#holidaymodal" data-toggle="modal">Add holiday</button>
                     </div>
                     <div class="col-md-2 btn-group">
-                        <button id="print" class="btn btn-outline-info custom-button" style="color: white;">Print</button>
+                        <button id="print" class="btn btn-outline-info custom-button" style="color: white;" onclick="printSection('chart-container')">Print</button>
                     </div>
                     <div class="col-md-2 btn-group">
-                        <button id="pdf" class="btn btn-outline-info custom-button" style="color: white;">PDF</button>
+                        <a href="{% url 'generate_pdf' %}" id="pdf" class="btn btn-outline-info custom-button" style="color: white;">PDF</a>
                     </div>
                     <div class="col-md-2 btn-group">
                         <button id="xl" class="btn btn-outline-info custom-button" style="color: white;"  onclick="ExportToExcel('xlsx')">EXPORT TO EXCEL</button>
@@ -54,11 +71,7 @@
         <div class="card radius-15">
             <div class="card-body">
             <div id="calendar"></div>
-            <!-- <div id="chart-container" style="display: none;">
-                <h3>Holidays Chart</h3>
-                <div id="chart-container"></div>
-            </div> -->
-            <div class="container-fluid" id="chart-container" style="display: none;">
+            <!-- <div class="container-fluid" id="chart-container" style="display: none;">
                 <table class="table table-responsive-md mt-4">
                     <thead>
                     <tr>
@@ -79,10 +92,34 @@
                     {% endfor %}
                     </tbody>
                 </table>
-            </div>
+            </div> -->
+            
+            <section class="product-area mt-4" id="chart-container" style="display: none;background-color: white;">
+                <table class="table table-hover table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="color:#000">Start Date</th>
+                            <th class="text-center" style="color:#000">End Date</th>
+                            <th class="text-center" style="color:#000">Holiday Name</th>
+                          
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in holiday %}
+                  
+                        <tr>
+                            <td class="text-center" style="color:#000">{{ r.start_date | date:'d-m-Y' }}</td>
+                            <td class="text-center" style="color:#000">{{ r.end_date | date:'d-m-Y' }}</td>
+                            <td class="text-center" style="color:#000">{{ r.name  }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </section>
     
             </div>
         </div> 
+
         
        
 
@@ -161,7 +198,18 @@ function Calender() {
             XLSX.writeFile(wb, fn || ('Holidays.' + (type || 'xlsx')));
     }
 
-
+    function printSection(sectionId) {
+        var printContents = document.getElementById(sectionId).innerHTML;
+        var originalContents = document.body.innerHTML;
+    
+        document.body.innerHTML = printContents;
+    
+        window.print();
+       
+    
+        document.body.innerHTML = originalContents;
+        window.location.reload();
+    }
  
 </script>
 

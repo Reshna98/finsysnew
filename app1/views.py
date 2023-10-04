@@ -31043,8 +31043,16 @@ def update_item(request, id):
             item.inter_st = request.POST.get('inter_st')
             item.inventry = request.POST.get('invacc')
             item.stock = request.POST.get('stock')
+            # print(request.POST.get('status'))
             item.status = request.POST.get('status')
             item.stock_rate = request.POST.get('stock_rate')#reshna added
+            # i=request.POST.get('e')
+            # print(i)
+            # try:
+            #     print("Value of 'e' parameter:", i)
+            # except Exception as e:
+            #     print("Error while saving item:", str(e))
+
             item.save()
             return redirect('goitem')
         return render(request,'app1/item_view.html',{'cmp1': cmp1})    
@@ -44350,35 +44358,8 @@ def sales_by_item(request):
     }
     return render(request,'app1/sales_by_item.html',context)
 
+##reshna-holiday
 
-# @login_required(login_url='regcomp')
-# def holidayss(request):
-#     cmp1 = company.objects.get(id=request.session['uid'])
-#     context={
-#         "cmp1":cmp1,
-#     }
-#     return render(request,'app1/holidays.html',context)
-# def holidayss(request):
-#     cmp1 = company.objects.get(id=request.session['uid'])
-    
-#     # Retrieve and convert holiday data into FullCalendar events
-#     holidayy = holidays.objects.filter(cid=cmp1)
-#     holiday_events = []
-
-#     for holiday in holidayy:
-#         event = {
-#             'title': holiday.name,
-#             'start': holiday.start_date.isoformat(),
-#             'end': holiday.end_date.isoformat(),
-#         }
-#         holiday_events.append(event)
-
-#     context = {
-#         "cmp1": cmp1,
-#         "holiday_events": json.dumps(holiday_events),  # Serialize the event data to JSON
-#     }
-
-#     return render(request, 'app1/holidays.html', context)
 def holidayss(request):
     cmp1 = company.objects.get(id=request.session['uid'])
     
@@ -44427,3 +44408,45 @@ def addholidays(request):
         return render(request,'app1/holidays.html',{'cmp1': cmp1})
     return redirect('/')
 
+
+def generate_pdf(request):
+    
+    cmp1 = company.objects.get(id=request.session['uid'])
+    holidayy = holidays.objects.filter(cid=cmp1)
+    template_path = 'app1/pdf_holidays.html'
+    context ={
+        'holiday':holidayy,
+        'cmp1':cmp1,
+
+    }
+    fname='holidays'
+   
+    # Create a Django response object, and specify content_type as pdftemp_creditnote
+    response = HttpResponse(content_type='application/pdf')
+    #response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+    response['Content-Disposition'] =f'attachment; filename={fname}.pdf'
+    # find the template and render it.
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # create a pdf
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
+    
+
+
+    # if error then show some funy view
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+##end#
+#reshna attendance
+def attendance(request):
+    cmp1 = company.objects.get(id=request.session['uid'])
+    
+    context = {
+        "cmp1": cmp1,
+       
+    }
+
+    return render(request, 'app1/attendance.html', context)

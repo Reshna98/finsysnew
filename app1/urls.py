@@ -1142,6 +1142,9 @@ urlpatterns = [
     # reshna-holidays
     path('holidayss',views.holidayss,name='holidayss'),
     path('addholidays',views.addholidays,name='addholidays'),
+    path('generate_pdf',views.generate_pdf,name='generate_pdf'),
+     # reshna-attendance
+    path('attendance',views.attendance,name='attendance'),
   
      
      
