@@ -44441,12 +44441,25 @@ def generate_pdf(request):
     return response
 ##end#
 #reshna attendance
-def attendance(request):
-    cmp1 = company.objects.get(id=request.session['uid'])
-    
-    context = {
-        "cmp1": cmp1,
-       
-    }
+def attendancepagee(request):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+        
+        cmp1 = company.objects.get(id=request.session['uid'])
+        holidays_data = holidays.objects.filter(cid=cmp1)
+        employees = payrollemployee.objects.filter(cid=cmp1)
+        employee_id = request.GET.get('employee_id')  
+        attendance_data = attendance.objects.filter(cid=cmp1, employee =employee_id)
+        context = {
+            'cmp1': cmp1,
+            'holidays': holidays_data,
+            'attendance': attendance_data,
+            'employees':  employees
+        }
 
-    return render(request, 'app1/attendance.html', context)
+        return render(request, 'app1/attendance.html', context)
+
+    return redirect('/')

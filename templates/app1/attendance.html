@@ -1,6 +1,44 @@
 {% extends 'app1/base.html' %}
 {% block body %}
       {% load static %}
-  
+
+      <div class="page-content">
+            <div class="card radius-15">
+                <div class="card-body">
+                    <div class="card-title">
+                        <center><h3 class="mb-0">ATTENDANCE</h3></center>
+                    </div>
+                    <hr/>
+                </div>
+            </div>
+            <div class="card radius-15" style="background-color: #243e54;">
+                <div class="card-body">
+                    <!-- <form action="{% url 'attendancepagee' %}" method="post" enctype="multipart/form-data" autocomplete="off"> -->
+                        <!-- {% csrf_token %} -->
+                         <div class="card-title">
+                          <h4 class="mb-0">Employees</h4>
+                    </div>
+                    <hr/>
+            
+                            <div class="row">
+                                <div class="col-md-4 mt-2">
+                                    <label for="validationCustom01">Select Employee</label>
+                                    <div class="d-flex">
+                                        <select name="employee_id" id="employee_id" class="custom-select">
+                                            <option selected disabled>Select Employee</option>
+                                            {% for e in employees %}
+                                            <option value="{{e.employeeid}} {{ e.firstname }} {{ e.lastname }}">{{ e.title }} {{ e.firstname }} {{ e.lastname }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <a>
+                                            <button type="button" class="btn btn-outline-secondary ml-1" 
+                                            data-target="#newvendor" data-toggle="modal">+</button>
+                                        </a>
+                                        <div class="valid-feedback">Looks good!</div> 
+                                    </div>
+                                </div>
+                            </div>
+                           
+          
 
 {% endblock %}

@@ -1227,6 +1227,7 @@ class itemtable(models.Model):
     stockout = models.IntegerField(default='0',blank=True,null=True)
     amount = models.IntegerField(default='0',blank=True,null=True)
     stock_rate= models.FloatField(default='0.0',blank=True,null=True)#reshna added
+    # stock_rate= models.IntegerField(default='0',blank=True,null=True)#reshna added
     status = models.CharField(max_length=100,null=True)
    
 
@@ -2178,3 +2179,10 @@ class holidays(models.Model):
     start_date = models.DateField(null=True,blank=True)
     end_date = models.DateField(null=True,blank=True)
     name = models.CharField(max_length=100,null=True,blank=True)
+# reshna attendence#
+class attendance(models.Model):
+    cid = models.ForeignKey(company, on_delete=models.CASCADE,null=True)
+    atid = models.AutoField(('hid'), primary_key=True)
+    date = models.DateField(null=True,blank=True)
+    employee= models.CharField(max_length=100,null=True,blank=True)
+    status = models.CharField(max_length=100,null=True,blank=True)
