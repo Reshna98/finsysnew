@@ -44377,6 +44377,7 @@ def holidayss(request):
                 'title': holiday.name,
                 'start': date.isoformat(),
                 'end': date.isoformat(),
+                'color': 'red', 
             }
             holiday_events.append(event)
 
@@ -44440,6 +44441,8 @@ def generate_pdf(request):
        return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
 ##end#
+
+
 #reshna attendance
 def attendancepagee(request):
     if 'uid' in request.session:
@@ -44451,15 +44454,144 @@ def attendancepagee(request):
         cmp1 = company.objects.get(id=request.session['uid'])
         holidays_data = holidays.objects.filter(cid=cmp1)
         employees = payrollemployee.objects.filter(cid=cmp1)
-        employee_id = request.GET.get('employee_id')  
-        attendance_data = attendance.objects.filter(cid=cmp1, employee =employee_id)
+    
         context = {
             'cmp1': cmp1,
             'holidays': holidays_data,
-            'attendance': attendance_data,
             'employees':  employees
         }
 
         return render(request, 'app1/attendance.html', context)
 
     return redirect('/')
+
+@login_required(login_url='regcomp')
+def save_attendance(request):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+        cmp1 = company.objects.get(id=request.session['uid'])
+        if request.method == 'POST':
+            date = request.POST.get('date')
+            status = request.POST.get('status')
+            employeeid = request.POST.get('employeeid')
+            new_attendance = attendance(cid=cmp1, date=date, employee=employeeid, status=status)
+            new_attendance.save()
+
+            return redirect('attendancepagee')
+        return render(request,'app1/attendance.html',{'cmp1': cmp1})
+    return redirect('/') 
+
+# def get_attendance_details(request):
+#     # if request.method == 'GET':
+#     employee_id = request.GET.get('employee1_id')
+        
+#         # Query the Attendance model to get details for the selected employee
+#     attendance_details = attendance.objects.filter(employee=employee_id)
+        
+#         # Prepare the data as a list of dictionaries
+#     attendance_list = []
+#     for attendance in attendance_details:
+#         attendance_dict = {
+#                 'date': attendance.date.strftime('%Y-%m-%d'),  # Format the date as needed
+#                 'status': attendance.status,
+#             }
+#         attendance_list.append(attendance_dict)
+        
+#         # Return the data as JSON response
+#     return JsonResponse({'attendance_details': attendance_list}, content_type='application/json')
+
+#     # else:
+#     #     return JsonResponse({'error': 'Invalid request method'})
+@login_required(login_url='regcomp')
+def get_attendance_details(request):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+        
+        comp = company.objects.get(id=request.session["uid"])
+
+        # Get the employee_id from the POST request data
+        employee_id = request.POST.get('employee1_id')
+
+        # Query the Attendance model to get details for the selected employee
+        attendance_details = attendance.objects.filter(employee=employee_id, cid=comp)
+
+        # Prepare the data as a list of dictionaries
+        attendance_list = []
+        for attendance_entry in attendance_details:
+            attendance_dict = {
+                'date': attendance_entry.date.strftime('%Y-%m-%d'),  # Format the date as needed
+                'status': attendance_entry.status,
+            }
+            attendance_list.append(attendance_dict)
+
+        # Return the attendance details as a JSON response
+        return JsonResponse({'attendance_details': attendance_list}, safe=False)
+
+    return redirect('/')
+
+def get_calendar_events(request):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+        
+        comp = company.objects.get(id=request.session["uid"])
+
+
+        employee_id = request.GET.get('employee_id')  
+        if employee_id:
+        
+            attendance_details = attendance.objects.filter(employee=employee_id, cid=comp)
+
+            holidays_list = holidays.objects.filter(cid=comp)
+
+        
+            events = []
+
+            for attendance_entry in attendance_details:
+                events.append({
+                'title': attendance_entry.status,
+                'start': attendance_entry.date.strftime('%Y-%m-%d'),
+                'color': 'green', 
+                 })
+
+            for holiday in holidays_list:
+                events.append({
+                'title': holiday.name,
+                'start': holiday.start_date.strftime('%Y-%m-%d'),
+                'end': holiday.end_date.strftime('%Y-%m-%d'),
+                'color': 'red',  
+                 })
+
+            return JsonResponse(events, safe=False)
+
+        return JsonResponse([], safe=False) 
+
+def get_counts(request):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+        
+        comp = company.objects.get(id=request.session["uid"])
+        if request.method == 'GET':
+            employee_id = request.GET.get('employee_id')
+            total_holidays = holidays.objects.filter(cid=comp,hid__isnull=False).count()
+            present_count = attendance.objects.filter(employee=employee_id, status='Present').count()
+            absent_count = attendance.objects.filter(employee=employee_id, status='Absent').count()
+
+            data = {
+            'total_holidays': total_holidays,
+            'present_count': present_count,
+            'absent_count': absent_count,
+            }
+
+            return JsonResponse(data)

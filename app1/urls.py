@@ -1145,6 +1145,13 @@ urlpatterns = [
     path('generate_pdf',views.generate_pdf,name='generate_pdf'),
      # reshna-attendance
     path('attendancepagee/',views.attendancepagee,name='attendancepagee'),
+    path('save_attendance',views.save_attendance,name='save_attendance'),
+    # path('fetch_employee_details/<str:employee_id>/', views.fetch_employee_details, name='fetch_employee_details'),
+    path('get_attendance_details',views.get_attendance_details,name='get_attendance_details'),
+    path('get_calendar_events',views.get_calendar_events,name='get_calendar_events'),
+    path('get_counts',views.get_counts,name='get_counts'),
+    # path('/',views.,name=''),
+
   
      
      
