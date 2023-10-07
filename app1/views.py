@@ -44595,3 +44595,63 @@ def get_counts(request):
             }
 
             return JsonResponse(data)
+
+# def attendance_pdf(request):
+    
+#     cmp1 = company.objects.get(id=request.session['uid'])
+#     holidays_data = holidays.objects.filter(cid=cmp1)
+#     employees = payrollemployee.objects.filter(cid=cmp1)
+#     template_path = 'app1/attendance.html'
+#     context = {
+#             'cmp1': cmp1,
+#             'holidays': holidays_data,
+#             'employees':  employees
+#         }
+    
+#     fname='attendance'
+   
+#     # Create a Django response object, and specify content_type as pdftemp_creditnote
+#     response = HttpResponse(content_type='application/pdf')
+#     #response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+#     response['Content-Disposition'] =f'attachment; filename= {fname}.pdf'
+#     # find the template and render it.
+#     template = get_template(template_path)
+#     html = template.render(context)
+
+#     # create a pdf
+#     pisa_status = pisa.CreatePDF( html, dest=response)
+ 
+#     if pisa_status.err:
+#        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+#     return response
+def attendance_pdf(request):
+    
+    cmp1 = company.objects.get(id=request.session['uid'])
+    holidays_data = holidays.objects.filter(cid=cmp1)
+    employees = payrollemployee.objects.filter(cid=cmp1)
+    template_path = 'app1/pdf_attendance.html'
+    context ={
+        'holidays':holidays_data,
+        'cmp1':cmp1,
+        'employees':employees,
+    }
+    fname='holidays'
+   
+    # Create a Django response object, and specify content_type as pdftemp_creditnote
+    response = HttpResponse(content_type='application/pdf')
+    #response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+    response['Content-Disposition'] =f'attachment; filename={fname}.pdf'
+    # find the template and render it.
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # create a pdf
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
+    
+
+
+    # if error then show some funy view
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response

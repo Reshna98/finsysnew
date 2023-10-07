@@ -1,3 +1,4 @@
+<!-- reshna-attendance -->
 {% extends 'app1/base.html' %}
 {% block body %}
       {% load static %}
@@ -5,7 +6,8 @@
       <script src="{% static 'assets/plugins/fullcalendar/js/main.min.js' %}"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
     <style>
-        .count-item {
+        
+.count-item {
     margin-bottom: 10px;
 }
 
@@ -14,7 +16,7 @@
     /* color: #007bff; */
 }
     </style>
-      <div class="page-content">
+      <!-- <div class="page-content">
             <div class="card radius-15">
                 <div class="card-body">
                     <div class="card-title">
@@ -22,13 +24,44 @@
                     </div>
                     <hr/>
                 </div>
-            </div>
+            </div> -->
+            <div class="page-content" >
+                <div class="card radius-15">
+                    <div class="card-body">
+                        <div class="card-title">
+                            <center><h2 class="mb-0">ATTENDANCE</h2></center>
+                            <hr>
+                            <nav class="navbar navbar-expand-lg navbar-light" style="background-color:rgba(0,0,0,.01);">
+                                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+                                  <span class="navbar-toggler-icon"></span>
+                                </button>
+                                <div class="collapse navbar-collapse" id="navbarScroll">
+                                    <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+                                      <li class="nav-item active" >
+                                        <a class="nav-link text-light btn" role="button" onclick="printSection('print')"><i class="fa fa-print">Print</i></a></li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-light btn" role="button" href="{%url 'attendance_pdf'%}">
+                                                <i class="fa fa-file-pdf-o">Pdf</i>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                           
+                                                <button id="xl" class="btn btn-outline-info custom-button" style="color: white;"  onclick="ExportToExcel('xlsx')">EXPORT TO EXCEL</button>
+                                           
+                                        </li>
+                                    </ul>
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
             <div class="card radius-15" style="background-color: #243e54;">
                 <div class="card-body">
                          <div class="card-title">
                           <h4 class="mb-0">Add Attendance</h4>
                     </div>
                     <hr/>
+                   
             
                             <div class="row">
                                 <div class="col-md-4 mt-2">
@@ -54,7 +87,7 @@
                         <div class="row">
                             <div class="col-md-3 mt-2"><h5>Attendance Details</h5></div></div>
                             <hr>
-                    
+                           
                             <div class="row">
                                 <div class="col-md-3 mt-2">
                             <label for="validationCustom01">Select Employee</label>
@@ -89,6 +122,7 @@
                                     </tbody>
                                 </table>
                             </div> -->
+                            <section id="print" class="container-fluid">
                             <div class="container-fluid" id="attendanceTable" style="display: none;">
                                 <table class="table table-responsive-md mt-4">
                                     <thead>
@@ -105,7 +139,7 @@
                             </div>
                             <div class="container-fluid" id="count" >
                             
-                            </div>
+                            </div></section>
                         
                             <div class="container-fluid" id="calendar"></div>
 
@@ -149,7 +183,7 @@
 </div>
 <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
 
 <script>
     $(document).ready(function () {
@@ -361,10 +395,33 @@ $(document).ready(function () {
     });
 });
 
+function ExportToExcel(type, fn, dl) {
+        var elt = document.getElementById('attendanceTable');
+        var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+        return dl ?
+            XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }) :
+            XLSX.writeFile(wb, fn || ('Attendance.' + (type || 'xlsx')));
+    }
 
+    function printSection(sectionId) {
+        var printContents = document.getElementById(sectionId).innerHTML;
+        var originalContents = document.body.innerHTML;
+    
+        document.body.innerHTML = printContents;
+    
+        window.print();
+       
+    
+        document.body.innerHTML = originalContents;
+        window.location.reload();
+    }
+ 
 </script>
 
 
+
+
+</script>
 
 
 {% endblock %}

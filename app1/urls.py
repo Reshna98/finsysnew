@@ -1150,7 +1150,7 @@ urlpatterns = [
     path('get_attendance_details',views.get_attendance_details,name='get_attendance_details'),
     path('get_calendar_events',views.get_calendar_events,name='get_calendar_events'),
     path('get_counts',views.get_counts,name='get_counts'),
-    # path('/',views.,name=''),
+    path('attendance_pdf',views.attendance_pdf,name='attendance_pdf'),
 
   
      

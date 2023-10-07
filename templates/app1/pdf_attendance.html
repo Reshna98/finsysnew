@@ -1,0 +1,329 @@
+<!-- reshna-attendance -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fin sYs</title>
+   
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
+    
+</head>
+<style>
+    
+    
+    .table
+    {
+        text-align: center;
+        padding-top: 6px;
+        font-size: 1.1em;
+        background-color:azure
+       
+    }
+    
+    .table-head
+    {
+        color: rgb(52, 49, 58);
+        
+       
+    }
+    .table .tbody tr 
+    {
+       margin-bottom: 3px;
+    }
+   
+    body{
+        font-size: 14px;
+    }
+   
+    
+</style>
+<body>
+   
+    <section id="print" class="container-fluid">
+        <div class="container-fluid" id="attendanceTable" style="display: none;">
+            <table class="table table-responsive-md mt-4">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Status</th>
+                    
+                </tr>
+                </thead>
+                <tbody  id="table">
+              
+                </tbody>
+            </table>
+        </div>
+        <div class="container-fluid" id="count" >
+        
+        </div></section>
+    
+        <div class="container-fluid" id="calendar"></div>
+
+        
+
+<div class="modal fade" id="attendanceModal" tabindex="-1" role="dialog" aria-labelledby="attendanceModalLabel" aria-hidden="true">
+<div class="modal-dialog" role="document">
+<div class="modal-content">
+<div class="modal-header" style="background-color: #243e54;">
+<h5 class="modal-title" id="attendanceModalLabel">Add Attendance</h5>
+<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+<span aria-hidden="true">&times;</span>
+</button>
+</div>
+<div class="modal-body" style="background-color: #243e54;">
+<form method="POST" action="{% url 'save_attendance' %}">
+{% csrf_token %}
+
+<input type="hidden" name="employeeid" id="employeid">
+<div class="form-group">
+<label for="date">Date</label>
+<input type="date" class="form-control" id="date" name="date" required>
+</div>
+<div class="form-group">
+<label for="status">Status</label>
+<select class="form-control" id="status" name="status" required>
+    <option value="Present">Present</option>
+    <option value="Absent">Absent</option>
+</select>
+</div>
+
+
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+<button type="submit" class="btn btn-primary">Save Attendance</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+</div>
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+
+<script>
+$(document).ready(function () {
+// When the "Add Attendance" button is clicked, set the employee_id value
+$('#addAttendanceBtn').on('click', function () {
+var selectedEmployeeId = $('#employe_id').val();
+$('#employeid').val(selectedEmployeeId); // Set the value in the employee field
+});
+
+$('#employee1_ids').on('change', function () {
+var selectedEmployeeId = $(this).val();
+$.ajax({
+url: "{% url 'get_attendance_details' %}",
+type: 'POST',
+data: {
+csrfmiddlewaretoken: '{{ csrf_token }}',
+employee1_id: selectedEmployeeId
+},
+// success: function (data) {
+//     var attendanceDetails = data.attendance_details;
+//     var attendanceTableHtml = '<h5>Attendance Details</h5>';
+//     attendanceTableHtml += '<table class="table table-bordered">';
+//     attendanceTableHtml += '<thead>';
+//     attendanceTableHtml += '<tr>';
+//     attendanceTableHtml += '<th>Date</th>';
+//     attendanceTableHtml += '<th>Status</th>';
+//     attendanceTableHtml += '</tr>';
+//     attendanceTableHtml += '</thead>';
+//     attendanceTableHtml += '<tbody>';
+//     for (var i = 0; i < attendanceDetails.length; i++) {
+//         attendanceTableHtml += '<tr>';
+//         attendanceTableHtml += '<td>' + attendanceDetails[i].date + '</td>';
+//         attendanceTableHtml += '<td>' + attendanceDetails[i].status + '</td>';
+//         attendanceTableHtml += '</tr>';
+//     }
+//     attendanceTableHtml += '</tbody>';
+//     attendanceTableHtml += '</table>';
+//     $('#attendanceDetails').html(attendanceTableHtml);
+// },
+success: function (data) {
+var attendanceDetails = data.attendance_details;
+var attendanceTableHtml = '';
+
+for (var i = 0; i < attendanceDetails.length; i++) {
+attendanceTableHtml += '<tr>';
+attendanceTableHtml += '<td>' + attendanceDetails[i].date + '</td>';
+attendanceTableHtml += '<td>' + attendanceDetails[i].status + '</td>';
+attendanceTableHtml += '</tr>';
+}
+
+// Update the table body with the fetched data
+$('#attendanceTable tbody').html(attendanceTableHtml);
+
+// Show the table
+$('#attendanceTable').show();
+},
+error: function (error) {
+// Handle any errors here
+}
+});
+});
+});
+//     document.addEventListener('DOMContentLoaded', function () {
+//     var calendarEl = document.getElementById('calendar');
+//     var calendar = new FullCalendar.Calendar(calendarEl, {
+//         initialView: 'dayGridMonth', // or any other view you prefer
+//         events: function (fetchInfo, successCallback, failureCallback) {
+//             var selectedEmployeeId = $('#employee1_ids').val();
+//             $.ajax({
+//                 url: "{% url 'get_calendar_events' %}?employee_id=" + selectedEmployeeId,
+//                 type: 'GET',
+//                 success: function (data) {
+//                     successCallback(data);
+//                 },
+//                 error: function () {
+//                     failureCallback([]);
+//                 }
+//             });
+//         },
+//         eventClick: function (info) {
+//             // Handle event click if needed
+//         }
+//     });
+//     calendar.render();
+// });
+document.addEventListener('DOMContentLoaded', function () {
+// $(document).ready(function () {
+var calendarEl = document.getElementById('calendar');
+var calendar;
+
+// Initialize the calendar
+function initCalendar(selectedEmployeeId) {
+calendar = new FullCalendar.Calendar(calendarEl, {
+initialView: 'dayGridMonth', // or any other view you prefer
+events: function (fetchInfo, successCallback, failureCallback) {
+$.ajax({
+url: "{% url 'get_calendar_events' %}?employee_id=" + selectedEmployeeId,
+type: 'GET',
+success: function (data) {
+    successCallback(data);
+    // $('#calendar').show();
+    // document.getElementById('calendar').style.display = 'block';
+},
+error: function () {
+    failureCallback([]);
+}
+});
+},
+eventClick: function (info) {
+// Handle event click if needed
+}
+});
+calendar.render();
+}
+
+// Handle employee selection change
+$('#employee1_ids').on('change', function () {
+var selectedEmployeeId = $(this).val();
+// Destroy the existing calendar instance, if any
+if (calendar) {
+calendar.destroy();
+}
+// Initialize the calendar with the selected employee
+initCalendar(selectedEmployeeId);
+});
+
+// Initialize the calendar with the default selected employee
+var defaultSelectedEmployeeId = $('#employee1_ids').val();
+initCalendar(defaultSelectedEmployeeId);
+});
+// // Function to update the UI with counts
+// function updateCounts(data) {
+//     // $('#totalHolidays').text(data.total_holidays);
+//     // $('#presentCount').text(data.present_count);
+//     // $('#absentCount').text(data.absent_count);
+//     var countsHtml = '<p>Holidays: ' + data.total_holidays + '</p>';
+//     countsHtml += '<p>Absent Days: ' + data.absent_count + '</p>';
+//     countsHtml += '<p>Present Days: ' + data.present_count + '</p>';
+
+//     // Update the count container with the counts HTML
+//     $('#count').html(countsHtml);
+// }
+
+// // Handle employee selection change
+// $('#employee1_ids').on('change', function () {
+//     var selectedEmployeeId = $(this).val();
+
+//     // Fetch counts for the selected employee
+//     $.ajax({
+//         url: "{% url 'get_counts' %}?employee_id=" + selectedEmployeeId,
+//         type: 'GET',
+//         success: function (data) {
+//             // Update the UI with the counts
+//             updateCounts(data);
+//         },
+//         error: function () {
+//             // Handle errors if needed
+//         }
+//     });
+
+//     // ... Rest of your code for updating the calendar
+// });
+
+// // Initialize counts with the default selected employee
+// var defaultSelectedEmployeeId = $('#employee1_ids').val();
+// $.ajax({
+//     url: "{% url 'get_counts' %}?employee_id=" + defaultSelectedEmployeeId,
+//     type: 'GET',
+//     success: function (data) {
+//         // Update the UI with the counts
+//         updateCounts(data);
+//     },
+//     error: function () {
+//         // Handle errors if needed
+//     }
+// });
+
+// // ... Rest of your code for initializing the calendar
+$(document).ready(function () {
+// ... Your existing code ...
+
+$('#employee1_ids').on('change', function () {
+var selectedEmployeeId = $(this).val();
+$.ajax({
+url: "{% url 'get_counts' %}",
+type: 'GET',
+data: {
+employee_id: selectedEmployeeId
+},
+success: function (data) {
+// // Display the counts in the 'count' div
+// var countHtml = 'Total Holidays: ' + data.total_holidays + '<br>';
+// countHtml += 'Present Days: ' + data.present_count + '<br>';
+// countHtml += 'Absent Days: ' + data.absent_count;
+
+// $('#count').html(countHtml);
+// Display the counts in the 'count' div with styles
+var countHtml = '<div class="count-item">Total Holidays: <span class="count-number" style="color:red;">' + data.total_holidays + '</span></div>';
+countHtml += '<div class="count-item">Present Days: <span class="count-number" style="color:green;">' + data.present_count + '</span></div>';
+countHtml += '<div class="count-item">Absent Days: <span class="count-number" style="color:red;">' + data.absent_count + '</span></div>';
+
+$('#count').html(countHtml);
+
+},
+error: function (error) {
+// Handle any errors here
+}
+});
+});
+});
+
+</script> 
+
+
+
+                      
+    
+    
+</body>
+
+</html>
