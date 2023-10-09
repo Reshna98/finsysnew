@@ -44624,34 +44624,72 @@ def get_counts(request):
 #     if pisa_status.err:
 #        return HttpResponse('We had some errors <pre>' + html + '</pre>')
 #     return response
-def attendance_pdf(request):
+# def attendance_pdf(request):
     
+#     cmp1 = company.objects.get(id=request.session['uid'])
+#     holidays_data = holidays.objects.filter(cid=cmp1)
+#     employees = payrollemployee.objects.filter(cid=cmp1)
+#     template_path = 'app1/pdf_attendance.html'
+#     context ={
+#         'holidays':holidays_data,
+#         'cmp1':cmp1,
+#         'employees':employees,
+#     }
+#     fname='holidays'
+   
+#     # Create a Django response object, and specify content_type as pdftemp_creditnote
+#     response = HttpResponse(content_type='application/pdf')
+#     #response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+#     response['Content-Disposition'] =f'attachment; filename={fname}.pdf'
+#     # find the template and render it.
+#     template = get_template(template_path)
+#     html = template.render(context)
+
+#     # create a pdf
+#     pisa_status = pisa.CreatePDF(
+#        html, dest=response)
+    
+
+
+#     # if error then show some funy view
+#     if pisa_status.err:
+#        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+#     return response
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+from bs4 import BeautifulSoup
+from django.template import  Context,Template
+
+def attendance_pdf(request):
     cmp1 = company.objects.get(id=request.session['uid'])
     holidays_data = holidays.objects.filter(cid=cmp1)
     employees = payrollemployee.objects.filter(cid=cmp1)
-    template_path = 'app1/pdf_attendance.html'
-    context ={
-        'holidays':holidays_data,
-        'cmp1':cmp1,
-        'employees':employees,
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    template_filename = 'app1/attendance.html'
+    template_path = os.path.join('templates', template_filename)
+
+    with open(template_path, 'r') as file:
+        html_content = file.read()
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+    section = soup.find('div', class_='prints')
+    section_html = section.prettify()
+    template = Template(section_html)
+
+    context = {
+    'holidays':holidays_data,
+         'cmp1':cmp1,
+         'employees':employees,
     }
-    fname='holidays'
-   
-    # Create a Django response object, and specify content_type as pdftemp_creditnote
+    html = template.render(Context(context))
+
+    fname ='attendance'
     response = HttpResponse(content_type='application/pdf')
-    #response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
-    response['Content-Disposition'] =f'attachment; filename={fname}.pdf'
-    # find the template and render it.
-    template = get_template(template_path)
-    html = template.render(context)
+    response['Content-Disposition'] = f'attachment; filename={fname}.pdf'
 
-    # create a pdf
-    pisa_status = pisa.CreatePDF(
-       html, dest=response)
-    
-
-
-    # if error then show some funy view
+    pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:
-       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    
     return response
+        

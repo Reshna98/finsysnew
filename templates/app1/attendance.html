@@ -5,8 +5,45 @@
       <link href="{% static 'assets/plugins/fullcalendar/css/main.min.css' %}" rel="stylesheet">
       <script src="{% static 'assets/plugins/fullcalendar/js/main.min.js' %}"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+      <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script> -->
+      
+
     <style>
-        
+          @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        header {
+            display: none;
+        }
+
+        .prints * {
+            visibility: visible;
+        }
+
+        .prints {
+            /* position: absolute; */
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            height: auto;
+            page-break-before: always;
+            page-break-inside: avoid;
+        }
+
+        @page {
+            size:100%;
+            margin: 0;
+            height: auto;
+        }
+        .pdf-table {
+            color: black; /* Set text color to black for the PDF */
+        }  
+    }
+
+      
 .count-item {
     margin-bottom: 10px;
 }
@@ -40,7 +77,7 @@
                                       <li class="nav-item active" >
                                         <a class="nav-link text-light btn" role="button" onclick="printSection('print')"><i class="fa fa-print">Print</i></a></li>
                                         <li class="nav-item">
-                                            <a class="nav-link text-light btn" role="button" href="{%url 'attendance_pdf'%}">
+                                            <a class="nav-link text-light btn" role="button" id="generatePdfBtn">
                                                 <i class="fa fa-file-pdf-o">Pdf</i>
                                             </a>
                                         </li>
@@ -120,19 +157,19 @@
                                     <tbody>
                                        
                                     </tbody>
-                                </table>
+                                </table
                             </div> -->
-                            <section id="print" class="container-fluid">
-                            <div class="container-fluid" id="attendanceTable" style="display: none;">
-                                <table class="table table-responsive-md mt-4">
+                            <section id="print" class="container-fluid ">
+                            <div class="container-fluid prints" id="attendanceTable">
+                                <table class="table table-responsive-md mt-4" style="background-color: white;">
                                     <thead>
                                     <tr>
-                                        <th>Date</th>
-                                        <th>Status</th>
+                                        <th style="color: black;">Date</th>
+                                        <th style="color: black;">Status</th>
                                         
                                     </tr>
                                     </thead>
-                                    <tbody  id="table">
+                                    <tbody  id="table" style="color: black;">
                                   
                                     </tbody>
                                 </table>
@@ -202,73 +239,32 @@
                 csrfmiddlewaretoken: '{{ csrf_token }}',
                 employee1_id: selectedEmployeeId
             },
-            // success: function (data) {
-            //     var attendanceDetails = data.attendance_details;
-            //     var attendanceTableHtml = '<h5>Attendance Details</h5>';
-            //     attendanceTableHtml += '<table class="table table-bordered">';
-            //     attendanceTableHtml += '<thead>';
-            //     attendanceTableHtml += '<tr>';
-            //     attendanceTableHtml += '<th>Date</th>';
-            //     attendanceTableHtml += '<th>Status</th>';
-            //     attendanceTableHtml += '</tr>';
-            //     attendanceTableHtml += '</thead>';
-            //     attendanceTableHtml += '<tbody>';
-            //     for (var i = 0; i < attendanceDetails.length; i++) {
-            //         attendanceTableHtml += '<tr>';
-            //         attendanceTableHtml += '<td>' + attendanceDetails[i].date + '</td>';
-            //         attendanceTableHtml += '<td>' + attendanceDetails[i].status + '</td>';
-            //         attendanceTableHtml += '</tr>';
-            //     }
-            //     attendanceTableHtml += '</tbody>';
-            //     attendanceTableHtml += '</table>';
-            //     $('#attendanceDetails').html(attendanceTableHtml);
-            // },
+           
             success: function (data) {
                 var attendanceDetails = data.attendance_details;
                 var attendanceTableHtml = '';
                 
                 for (var i = 0; i < attendanceDetails.length; i++) {
                     attendanceTableHtml += '<tr>';
-                    attendanceTableHtml += '<td>' + attendanceDetails[i].date + '</td>';
-                    attendanceTableHtml += '<td>' + attendanceDetails[i].status + '</td>';
+                    attendanceTableHtml += '<td style="color: black;">' + attendanceDetails[i].date + '</td>';
+                    attendanceTableHtml += '<td style="color: black;">' + attendanceDetails[i].status + '</td>';
                     attendanceTableHtml += '</tr>';
                 }
                 
-                // Update the table body with the fetched data
+                
                 $('#attendanceTable tbody').html(attendanceTableHtml);
                 
-                // Show the table
+              
                 $('#attendanceTable').show();
+               
             },
             error: function (error) {
-                // Handle any errors here
+               
             }
         });
     });
     });
-//     document.addEventListener('DOMContentLoaded', function () {
-//     var calendarEl = document.getElementById('calendar');
-//     var calendar = new FullCalendar.Calendar(calendarEl, {
-//         initialView: 'dayGridMonth', // or any other view you prefer
-//         events: function (fetchInfo, successCallback, failureCallback) {
-//             var selectedEmployeeId = $('#employee1_ids').val();
-//             $.ajax({
-//                 url: "{% url 'get_calendar_events' %}?employee_id=" + selectedEmployeeId,
-//                 type: 'GET',
-//                 success: function (data) {
-//                     successCallback(data);
-//                 },
-//                 error: function () {
-//                     failureCallback([]);
-//                 }
-//             });
-//         },
-//         eventClick: function (info) {
-//             // Handle event click if needed
-//         }
-//     });
-//     calendar.render();
-// });
+
 document.addEventListener('DOMContentLoaded', function () {
     // $(document).ready(function () {
     var calendarEl = document.getElementById('calendar');
@@ -314,54 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var defaultSelectedEmployeeId = $('#employee1_ids').val();
     initCalendar(defaultSelectedEmployeeId);
 });
-// // Function to update the UI with counts
-// function updateCounts(data) {
-//     // $('#totalHolidays').text(data.total_holidays);
-//     // $('#presentCount').text(data.present_count);
-//     // $('#absentCount').text(data.absent_count);
-//     var countsHtml = '<p>Holidays: ' + data.total_holidays + '</p>';
-//     countsHtml += '<p>Absent Days: ' + data.absent_count + '</p>';
-//     countsHtml += '<p>Present Days: ' + data.present_count + '</p>';
-    
-//     // Update the count container with the counts HTML
-//     $('#count').html(countsHtml);
-// }
 
-// // Handle employee selection change
-// $('#employee1_ids').on('change', function () {
-//     var selectedEmployeeId = $(this).val();
-
-//     // Fetch counts for the selected employee
-//     $.ajax({
-//         url: "{% url 'get_counts' %}?employee_id=" + selectedEmployeeId,
-//         type: 'GET',
-//         success: function (data) {
-//             // Update the UI with the counts
-//             updateCounts(data);
-//         },
-//         error: function () {
-//             // Handle errors if needed
-//         }
-//     });
-
-//     // ... Rest of your code for updating the calendar
-// });
-
-// // Initialize counts with the default selected employee
-// var defaultSelectedEmployeeId = $('#employee1_ids').val();
-// $.ajax({
-//     url: "{% url 'get_counts' %}?employee_id=" + defaultSelectedEmployeeId,
-//     type: 'GET',
-//     success: function (data) {
-//         // Update the UI with the counts
-//         updateCounts(data);
-//     },
-//     error: function () {
-//         // Handle errors if needed
-//     }
-// });
-
-// // ... Rest of your code for initializing the calendar
 $(document).ready(function () {
     // ... Your existing code ...
 
@@ -417,9 +366,69 @@ function ExportToExcel(type, fn, dl) {
     }
  
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 
+<script type="text/javascript">
+    document.getElementById('generatePdfBtn').addEventListener('click', function() {
+    generatePDF();
+});
 
+function generatePDF() {
+    const { jsPDF } = window.jspdf;
+
+    // Create a new jsPDF instance
+    var doc = new jsPDF('l', 'mm', [630, 630]);
+    
+    // Select the HTML element containing the table to be converted
+    var pdfjs = document.querySelector('#attendanceTable');
+
+    // Use html2canvas to convert the HTML element to an image
+    html2canvas(pdfjs).then(function(canvas) {
+        // Get the image data URL
+        var imgData = canvas.toDataURL('image/jpeg');
+        
+        // Add the image to the PDF
+        doc.addImage(imgData, 'JPEG', 10, 10);
+
+        // Save the PDF
+        doc.save("attendance.pdf");
+    });
+}
+         
+</script>
+
+<script>
+    $(document).ready(function () {
+    // Function to show the attendance table
+    function showAttendanceTable() {
+        $('#attendanceTable').show();
+    }
+
+    // Function to hide the attendance table
+    function hideAttendanceTable() {
+        $('#attendanceTable').hide();
+    }
+
+    // Attach a change event to the dropdown (employee1_ids) to monitor changes
+    $('#employee1_ids').on('change', function () {
+        // Check the selected value of the dropdown
+        var selectedValue = $(this).val();
+
+        // If a valid option is selected, show the table; otherwise, hide it
+        if (selectedValue !== '') {
+            showAttendanceTable();
+        } else {
+            hideAttendanceTable();
+        }
+    });
+
+    // Initially, hide the attendance table
+    hideAttendanceTable();
+});
 
 </script>
 
