@@ -1143,7 +1143,7 @@ urlpatterns = [
     path('holidayss',views.holidayss,name='holidayss'),
     path('addholidays',views.addholidays,name='addholidays'),
     path('generate_pdf',views.generate_pdf,name='generate_pdf'),
-     # reshna-attendance
+    # reshna-attendance
     path('attendancepagee/',views.attendancepagee,name='attendancepagee'),
     path('save_attendance',views.save_attendance,name='save_attendance'),
     # path('fetch_employee_details/<str:employee_id>/', views.fetch_employee_details, name='fetch_employee_details'),

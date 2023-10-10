@@ -44363,7 +44363,7 @@ def sales_by_item(request):
 def holidayss(request):
     cmp1 = company.objects.get(id=request.session['uid'])
     
-    # Retrieve and convert holiday data into FullCalendar events
+  
     holidayy = holidays.objects.filter(cid=cmp1)
     holiday_events = []
 

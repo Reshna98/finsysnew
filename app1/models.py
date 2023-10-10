@@ -1227,7 +1227,6 @@ class itemtable(models.Model):
     stockout = models.IntegerField(default='0',blank=True,null=True)
     amount = models.IntegerField(default='0',blank=True,null=True)
     stock_rate= models.FloatField(default='0.0',blank=True,null=True)#reshna added
-    # stock_rate= models.IntegerField(default='0',blank=True,null=True)#reshna added
     status = models.CharField(max_length=100,null=True)
    
 
