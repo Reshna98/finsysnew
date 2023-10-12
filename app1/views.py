@@ -44360,34 +44360,81 @@ def sales_by_item(request):
 
 ##reshna-holiday
 
-def holidayss(request):
-    cmp1 = company.objects.get(id=request.session['uid'])
+# def holidayss(request):
+#     cmp1 = company.objects.get(id=request.session['uid'])
     
   
-    holidayy = holidays.objects.filter(cid=cmp1)
-    holiday_events = []
+#     holidayy = holidays.objects.filter(cid=cmp1)
+#     # holiday_events = []
 
-    for holiday in holidayy:
-        # Calculate the date range for the holiday
-        date_range = [holiday.start_date + timedelta(days=i) for i in range((holiday.end_date - holiday.start_date).days + 1)]
+#     # for holiday in holidayy:
+#     #     # Calculate the date range for the holiday
+#     #     date_range = [holiday.start_date + timedelta(days=i) for i in range((holiday.end_date - holiday.start_date).days + 1)]
 
-        # Create separate events for each date in the range
-        for date in date_range:
-            event = {
-                'title': holiday.name,
-                'start': date.isoformat(),
-                'end': date.isoformat(),
-                'color': 'red', 
-            }
-            holiday_events.append(event)
+#     #     # Create separate events for each date in the range
+#     #     for date in date_range:
+#     #         event = {
+#     #             'title': holiday.name,
+#     #             'start': date.isoformat(),
+#     #             'end': date.isoformat(),
+#     #             'color': 'red', 
+#     #         }
+#     #         holiday_events.append(event)
+
+#     context = {
+#         "cmp1": cmp1,
+#         # "holiday_events": json.dumps(holiday_events),  # Serialize the event data to JSON
+#         "holiday":holidayy,
+#     }
+
+#     return render(request, 'app1/holidays.html', context)
+from datetime import date, datetime
+from calendar import monthrange
+from collections import defaultdict
+
+def holidayss(request):
+    cmp1 = company.objects.get(id=request.session['uid'])
+    holidays_data = holidays.objects.filter(cid=cmp1)
+    # Create a defaultdict to store holiday data by month
+    holiday_months = defaultdict(list)
+
+    for holiday in holidays_data:
+        # Extract month and year from the start_date
+        start_date = holiday.start_date
+        month_year = start_date.strftime('%B %Y')
+
+        # Add the holiday data to the corresponding month
+        holiday_months[month_year].append(holiday)
+
+    # Create a list of dictionaries to store month, year, holidays, and total working days
+    month_details = []
+    for month_year, month_holidays in holiday_months.items():
+        month, year = month_year.split()
+        total_holidays = len(month_holidays)
+
+        # Calculate the total number of working days for the month
+        _, last_day = monthrange(int(year), datetime.strptime(month, '%B').month)
+        all_days = [date(int(year), datetime.strptime(month, '%B').month, day) for day in range(1, last_day + 1)]
+
+        # Exclude holidays from the total days
+        working_days = len(all_days) - total_holidays
+
+        month_details.append({
+            'month': month,
+            'year': year,
+            'holidays': month_holidays,
+            'total_holidays': total_holidays,
+            'working_days': working_days,
+           
+        })
 
     context = {
         "cmp1": cmp1,
-        "holiday_events": json.dumps(holiday_events),  # Serialize the event data to JSON
-        "holiday":holidayy,
+        "month_details": month_details,
     }
 
     return render(request, 'app1/holidays.html', context)
+
 
 
  
@@ -44406,8 +44453,45 @@ def addholidays(request):
             hdays = holidays(name=name,start_date=start_date,end_date=end_date,cid=cmp1)
             hdays.save()
         return redirect('holidayss')
-        return render(request,'app1/holidays.html',{'cmp1': cmp1})
+        return render(request,'app1/holiday_add.html',{'cmp1': cmp1})
     return redirect('/')
+
+@login_required(login_url='regcomp')
+def holiday_addpage(request):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+        cmp1 = company.objects.get(id=request.session['uid'])
+        context = {
+                    'cmp1': cmp1,
+        }
+        return render(request,'app1/holiday_add.html',context)
+    return redirect('addholidays')
+
+
+def view_holidays(request, year, month):
+    # Convert the month parameter to a numeric value.
+    month_numeric = datetime.datetime.strptime(month, "%B").month
+
+    # Get the holiday data for the specified year and month
+    cmp1 = company.objects.get(id=request.session["uid"])
+    holiday_data = holidays.objects.filter(
+        start_date__year=year,
+        start_date__month=month_numeric,
+        cid=cmp1
+    )
+
+    context = {
+        'year': year,
+        'month': month,
+        'holiday_data': holiday_data,
+        'cmp1': cmp1,
+    }
+
+    return render(request, 'app1/holiday_view.html', context)
+
 
 
 def generate_pdf(request):
@@ -44484,27 +44568,7 @@ def save_attendance(request):
         return render(request,'app1/attendance.html',{'cmp1': cmp1})
     return redirect('/') 
 
-# def get_attendance_details(request):
-#     # if request.method == 'GET':
-#     employee_id = request.GET.get('employee1_id')
-        
-#         # Query the Attendance model to get details for the selected employee
-#     attendance_details = attendance.objects.filter(employee=employee_id)
-        
-#         # Prepare the data as a list of dictionaries
-#     attendance_list = []
-#     for attendance in attendance_details:
-#         attendance_dict = {
-#                 'date': attendance.date.strftime('%Y-%m-%d'),  # Format the date as needed
-#                 'status': attendance.status,
-#             }
-#         attendance_list.append(attendance_dict)
-        
-#         # Return the data as JSON response
-#     return JsonResponse({'attendance_details': attendance_list}, content_type='application/json')
 
-#     # else:
-#     #     return JsonResponse({'error': 'Invalid request method'})
 @login_required(login_url='regcomp')
 def get_attendance_details(request):
     if 'uid' in request.session:
@@ -44596,65 +44660,7 @@ def get_counts(request):
 
             return JsonResponse(data)
 
-# def attendance_pdf(request):
-    
-#     cmp1 = company.objects.get(id=request.session['uid'])
-#     holidays_data = holidays.objects.filter(cid=cmp1)
-#     employees = payrollemployee.objects.filter(cid=cmp1)
-#     template_path = 'app1/attendance.html'
-#     context = {
-#             'cmp1': cmp1,
-#             'holidays': holidays_data,
-#             'employees':  employees
-#         }
-    
-#     fname='attendance'
-   
-#     # Create a Django response object, and specify content_type as pdftemp_creditnote
-#     response = HttpResponse(content_type='application/pdf')
-#     #response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
-#     response['Content-Disposition'] =f'attachment; filename= {fname}.pdf'
-#     # find the template and render it.
-#     template = get_template(template_path)
-#     html = template.render(context)
 
-#     # create a pdf
-#     pisa_status = pisa.CreatePDF( html, dest=response)
- 
-#     if pisa_status.err:
-#        return HttpResponse('We had some errors <pre>' + html + '</pre>')
-#     return response
-# def attendance_pdf(request):
-    
-#     cmp1 = company.objects.get(id=request.session['uid'])
-#     holidays_data = holidays.objects.filter(cid=cmp1)
-#     employees = payrollemployee.objects.filter(cid=cmp1)
-#     template_path = 'app1/pdf_attendance.html'
-#     context ={
-#         'holidays':holidays_data,
-#         'cmp1':cmp1,
-#         'employees':employees,
-#     }
-#     fname='holidays'
-   
-#     # Create a Django response object, and specify content_type as pdftemp_creditnote
-#     response = HttpResponse(content_type='application/pdf')
-#     #response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
-#     response['Content-Disposition'] =f'attachment; filename={fname}.pdf'
-#     # find the template and render it.
-#     template = get_template(template_path)
-#     html = template.render(context)
-
-#     # create a pdf
-#     pisa_status = pisa.CreatePDF(
-#        html, dest=response)
-    
-
-
-#     # if error then show some funy view
-#     if pisa_status.err:
-#        return HttpResponse('We had some errors <pre>' + html + '</pre>')
-#     return response
 from xhtml2pdf import pisa
 from django.template.loader import get_template
 from bs4 import BeautifulSoup
