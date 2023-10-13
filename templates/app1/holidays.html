@@ -13,6 +13,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
   
+  
 
         <div class="page-content" id="test">
             <div class="card radius-15">
@@ -65,23 +66,25 @@
                     </div>
 
                     <div class="container-fluid">
-                        <table class="table table-responsive-md mt-4">
+                        <table class="table table-responsive-md mt-4" id="table1">
                             <thead>
                             <tr>
-                                <th>Month</th>
-                                <th>Year</th>
-                                <th>Total Holidays</th>
-                                <th>Total Working Days</th>
+                                <th class="text-center">Month</th>
+                                <th class="text-center">Year</th>
+                                <th class="text-center">Total Holidays</th>
+                                <th class="text-center">Total Working Days</th>
                             </tr>
                             </thead>
                             <tbody  id="table">
                             {% for month_detail in month_details %}
                             <!-- <tr> -->
+                           
+
                               <tr data-month="{{ month_detail.month }}" data-year="{{ month_detail.year }}" class="holiday-row">
-                                    <td>{{ month_detail.month }}</td>
-                                    <td>{{ month_detail.year }}</td>
-                                    <td>{{ month_detail.total_holidays }}</td>
-                                    <td>{{ month_detail.working_days }}</td>
+                                    <td class="text-center">{{ month_detail.month }}</td>
+                                    <td class="text-center">{{ month_detail.year }}</td>
+                                    <td class="text-center">{{ month_detail.total_holidays }}</td>
+                                    <td class="text-center">{{ month_detail.working_days }}</td>
                                 </tr> 
                             {% endfor %}
                             </tbody>
@@ -104,11 +107,11 @@
             });
 
         function ExportToExcel(type, fn, dl) {
-        var elt = document.getElementById('table');
+        var elt = document.getElementById('table1');
         var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
         return dl ?
             XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }) :
-            XLSX.writeFile(wb, fn || ('bank.' + (type || 'xlsx')));
+            XLSX.writeFile(wb, fn || ('holidays.' + (type || 'xlsx')));
     }
 </script>
  
@@ -118,6 +121,8 @@
         $('.holiday-row').click(function () {
             var year = $(this).data('year');
             var month = $(this).data('month');
+            console.log(`Year: ${year}, Month: ${month}`);
+
             var url = `view_holidays/${year}/${month}/`;
     
             // Navigate to the selected year and month page

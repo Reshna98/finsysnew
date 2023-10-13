@@ -44399,23 +44399,31 @@ def holidayss(request):
     holiday_months = defaultdict(list)
 
     for holiday in holidays_data:
-        # Extract month and year from the start_date
+        # Extract the start and end dates
         start_date = holiday.start_date
-        month_year = start_date.strftime('%B %Y')
+        end_date = holiday.end_date
 
-        # Add the holiday data to the corresponding month
-        holiday_months[month_year].append(holiday)
+        # Calculate the number of days between start_date and end_date
+        delta = (end_date - start_date).days
+
+        # Add the holiday data to each day within the date range
+        for i in range(delta + 1):
+            current_date = start_date + timedelta(days=i)
+            month_year = current_date.strftime('%B %Y')
+            holiday_months[month_year].append(holiday)
+
+        
 
     # Create a list of dictionaries to store month, year, holidays, and total working days
     month_details = []
     for month_year, month_holidays in holiday_months.items():
         month, year = month_year.split()
         total_holidays = len(month_holidays)
+        month_numeric = datetime.strptime(month, '%B').month
 
         # Calculate the total number of working days for the month
-        _, last_day = monthrange(int(year), datetime.strptime(month, '%B').month)
-        all_days = [date(int(year), datetime.strptime(month, '%B').month, day) for day in range(1, last_day + 1)]
-
+        _, last_day = monthrange(int(year), month_numeric)
+        all_days = [date(int(year), month_numeric, day) for day in range(1, last_day + 1)]
         # Exclude holidays from the total days
         working_days = len(all_days) - total_holidays
 
@@ -44473,7 +44481,7 @@ def holiday_addpage(request):
 
 def view_holidays(request, year, month):
     # Convert the month parameter to a numeric value.
-    month_numeric = datetime.datetime.strptime(month, "%B").month
+    month_numeric = datetime.strptime(month, "%B").month
 
     # Get the holiday data for the specified year and month
     cmp1 = company.objects.get(id=request.session["uid"])
@@ -44483,17 +44491,36 @@ def view_holidays(request, year, month):
         cid=cmp1
     )
 
+    total_holidays = 0
+    total_working_days = 0
+
+    for holiday in holiday_data:
+        start_date = holiday.start_date
+        end_date = holiday.end_date
+
+        # Calculate the date range based on the start and end date
+        date_range = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+
+        total_holidays += len(date_range)
+
+    # Calculate the total working days for the month
+    _, last_day = monthrange(int(year), month_numeric)
+    all_days = [date(int(year), month_numeric, day) for day in range(1, last_day + 1)]
+    total_working_days = len(all_days) - total_holidays
+    
+    
     context = {
         'year': year,
         'month': month,
         'holiday_data': holiday_data,
         'cmp1': cmp1,
+        'total_holidays': total_holidays,
+        'total_working_days': total_working_days,
     }
-
+    
     return render(request, 'app1/holiday_view.html', context)
 
-
-
+    
 def generate_pdf(request):
     
     cmp1 = company.objects.get(id=request.session['uid'])
