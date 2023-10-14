@@ -44389,7 +44389,7 @@ def sales_by_item(request):
 
 #     return render(request, 'app1/holidays.html', context)
 from datetime import date, datetime
-from calendar import monthrange
+from calendar import monthrange,month_name
 from collections import defaultdict
 
 def holidayss(request):
@@ -44521,15 +44521,39 @@ def view_holidays(request, year, month):
     return render(request, 'app1/holiday_view.html', context)
 
     
-def generate_pdf(request):
-    
-    cmp1 = company.objects.get(id=request.session['uid'])
-    holidayy = holidays.objects.filter(cid=cmp1)
-    template_path = 'app1/pdf_holidays.html'
-    context ={
-        'holiday':holidayy,
-        'cmp1':cmp1,
+def generate_pdf(request,year, month):
+    month_numeric = datetime.strptime(month, "%B").month
+    cmp1 = company.objects.get(id=request.session["uid"])
+    holiday_data = holidays.objects.filter(
+        start_date__year=year,
+        start_date__month=month_numeric,
+        cid=cmp1
+    )
 
+    total_holidays = 0
+    total_working_days = 0
+
+    for holiday in holiday_data:
+        start_date = holiday.start_date
+        end_date = holiday.end_date
+
+      
+        date_range = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+
+        total_holidays += len(date_range)
+
+    _, last_day = monthrange(int(year), month_numeric)
+    all_days = [date(int(year), month_numeric, day) for day in range(1, last_day + 1)]
+    total_working_days = len(all_days) - total_holidays
+    template_path = 'app1/pdf_holidays.html'
+    
+    context = {
+        'year': year,
+        'month': month,
+        'holiday_data': holiday_data,
+        'cmp1': cmp1,
+        'total_holidays': total_holidays,
+        'total_working_days': total_working_days,
     }
     fname='holidays'
    
@@ -44551,10 +44575,13 @@ def generate_pdf(request):
     if pisa_status.err:
        return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
+
+
 ##end#
 
 
 #reshna attendance
+
 def attendancepagee(request):
     if 'uid' in request.session:
         if request.session.has_key('uid'):
@@ -44563,18 +44590,64 @@ def attendancepagee(request):
             return redirect('/')
         
         cmp1 = company.objects.get(id=request.session['uid'])
-        holidays_data = holidays.objects.filter(cid=cmp1)
-        employees = payrollemployee.objects.filter(cid=cmp1)
-    
+
+        # Get all attendance records for the company
+        attendance_data = attendance.objects.filter(cid=cmp1)
+
+        # Create a dictionary to store employee attendance details for each unique combination of employee and month
+        employee_attendance = {}
+
+        for entry in attendance_data:
+            # Get the year and month from the attendance date
+            year = entry.date.year
+            month = entry.date.month
+
+            # Create a key for the unique combination of employee and month
+            key = (entry.employee, year, month)
+
+            if key not in employee_attendance:
+                # If the key is not in the dictionary, initialize the attendance details
+                employee_attendance[key] = {
+                    'employee': entry.employee,
+                    'year': year,
+                    'month': month_name[month],
+                    'working_days': 0,
+                    'holidays': 0,
+                    'absent_days': 0,
+                }
+
+            # Update absent count based on status
+            if entry.status == 'Absent':
+                employee_attendance[key]['absent_days'] += 1
+
+            # Get the total number of days in the selected month
+            _, last_day = monthrange(year, month)
+
+            # Calculate total holidays for the selected month and year using the holidays table
+            holidays_data = holidays.objects.filter(
+                cid=cmp1,
+                start_date__year=year,
+                start_date__month=month
+            )
+            total_holidays = 0
+            for holiday in holidays_data:
+                total_holidays += (holiday.end_date - holiday.start_date).days + 1
+
+            employee_attendance[key]['holidays'] = total_holidays
+
+            # Calculate working days for the selected month and year
+            employee_attendance[key]['working_days'] = last_day - employee_attendance[key]['holidays']
+
+        # Convert the dictionary values to a list for rendering in the template
         context = {
             'cmp1': cmp1,
-            'holidays': holidays_data,
-            'employees':  employees
+            'employee_attendance': list(employee_attendance.values()),
         }
 
         return render(request, 'app1/attendance.html', context)
 
     return redirect('/')
+
 
 @login_required(login_url='regcomp')
 def save_attendance(request):
@@ -44587,13 +44660,30 @@ def save_attendance(request):
         if request.method == 'POST':
             date = request.POST.get('date')
             status = request.POST.get('status')
-            employeeid = request.POST.get('employeeid')
+            # employeeid = request.POST.get('employeeid')
+            employeeid = request.POST.get('employee_id').split(" ")[1:]
+            employeeid = " ".join(employeeid)
             new_attendance = attendance(cid=cmp1, date=date, employee=employeeid, status=status)
             new_attendance.save()
 
             return redirect('attendancepagee')
-        return render(request,'app1/attendance.html',{'cmp1': cmp1})
+        return render(request,'app1/attendance_add.html',{'cmp1': cmp1})
     return redirect('/') 
+
+def attendance_addpage(request):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+        cmp1 = company.objects.get(id=request.session['uid'])
+        employees = payrollemployee.objects.filter(cid=cmp1)
+        context = {
+                    'cmp1': cmp1,
+                    'employees':employees
+        }
+        return render(request,'app1/attendance_add.html',context)
+    return redirect('save_attendance')
 
 
 @login_required(login_url='regcomp')
@@ -44625,6 +44715,7 @@ def get_attendance_details(request):
         return JsonResponse({'attendance_details': attendance_list}, safe=False)
 
     return redirect('/')
+
 
 def get_calendar_events(request):
     if 'uid' in request.session:

@@ -440,7 +440,7 @@
                                
                                    
                                 <li class="nav-item">
-                                    <a class="nav-link text-light btn" role="button" href="">
+                                    <a class="nav-link text-light btn" role="button" href="{% url 'generate_pdf' year=year month=month %}">
                                         <i class="fa fa-file-pdf-o">Pdf</i>
                                     </a>
                                 </li>
@@ -462,7 +462,7 @@
             <div class="card-body p-0" >
                
             <div class="container-fluid" id="calendar">
-                <h3 style="text-align: center;">Holidays for {{ month }} {{ year }}</h3>
+                <!-- <h3 style="text-align: center;">Holidays for {{ month }} {{ year }}</h3> -->
             
                 <!-- Display the FullCalendar -->
                 <div id="holiday-calendar" class="p-3"></div>
@@ -565,7 +565,7 @@
         calendar.render();
     });
 </script> -->
-
+<!-- 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('holiday-calendar');
@@ -592,7 +592,38 @@
         });
         calendar.render();
     });
+</script> -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('holiday-calendar');
+        var events = [
+            {% for holiday in holiday_data %}
+            {
+                title: "{{ holiday.name }}",
+                start: "{{ holiday.start_date|date:'Y-m-d' }}",
+                end: "{{ holiday.end_date|date:'Y-m-d' }}"
+            },
+            {% endfor %}
+        ];
+
+        // Find the first and last holiday dates
+        var firstHoliday = new Date(events[0].start);
+        var lastHoliday = new Date(events[events.length - 1].start);
+
+        // Calculate the month and year for the initial view
+        var initialDate = new Date(firstHoliday);
+        initialDate.setDate(1);  // Set the day to the 1st of the month
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            events: events,
+            initialView: 'dayGridMonth',
+            // Set the initial date to the month and year of the holidays
+            initialDate: initialDate
+        });
+        calendar.render();
+    });
 </script>
+
 
 
 

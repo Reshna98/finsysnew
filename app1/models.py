@@ -2184,4 +2184,4 @@ class attendance(models.Model):
     atid = models.AutoField(('hid'), primary_key=True)
     date = models.DateField(null=True,blank=True)
     employee= models.CharField(max_length=100,null=True,blank=True)
-    status = models.CharField(max_length=100,null=True,blank=True)
+    status = models.CharField(max_length=100,null=True,blank=True,default='Present')
