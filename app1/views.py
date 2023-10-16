@@ -44395,18 +44395,13 @@ from collections import defaultdict
 def holidayss(request):
     cmp1 = company.objects.get(id=request.session['uid'])
     holidays_data = holidays.objects.filter(cid=cmp1)
-    # Create a defaultdict to store holiday data by month
     holiday_months = defaultdict(list)
 
     for holiday in holidays_data:
-        # Extract the start and end dates
         start_date = holiday.start_date
         end_date = holiday.end_date
 
-        # Calculate the number of days between start_date and end_date
         delta = (end_date - start_date).days
-
-        # Add the holiday data to each day within the date range
         for i in range(delta + 1):
             current_date = start_date + timedelta(days=i)
             month_year = current_date.strftime('%B %Y')
@@ -44480,10 +44475,7 @@ def holiday_addpage(request):
 
 
 def view_holidays(request, year, month):
-    # Convert the month parameter to a numeric value.
     month_numeric = datetime.strptime(month, "%B").month
-
-    # Get the holiday data for the specified year and month
     cmp1 = company.objects.get(id=request.session["uid"])
     holiday_data = holidays.objects.filter(
         start_date__year=year,
@@ -44557,11 +44549,9 @@ def generate_pdf(request,year, month):
     }
     fname='holidays'
    
-    # Create a Django response object, and specify content_type as pdftemp_creditnote
     response = HttpResponse(content_type='application/pdf')
     #response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
     response['Content-Disposition'] =f'attachment; filename={fname}.pdf'
-    # find the template and render it.
     template = get_template(template_path)
     html = template.render(context)
 
@@ -44569,13 +44559,56 @@ def generate_pdf(request,year, month):
     pisa_status = pisa.CreatePDF(
        html, dest=response)
     
-
-
-    # if error then show some funy view
     if pisa_status.err:
        return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
 
+def edit_holiday(request, holiday_id):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+        cmp1 = company.objects.get(id=request.session['uid'])
+        if request.method == 'POST':
+            holiday = holidays.objects.get(hid=holiday_id)
+            holiday.name = request.POST.get('name')
+            # holiday.start_date = request.POST.get('start_date')
+            # holiday.end_date = request.POST.get('end_date')
+            start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d')
+            end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d')
+
+            holiday.start_date = start_date
+            holiday.end_date = end_date
+            
+
+            holiday.save()
+            year = start_date.year
+            month = start_date.strftime('%B').capitalize()
+
+            return redirect('view_holidays', year=year, month=month)
+        else:
+            holiday = holidays.objects.get(hid=holiday_id)
+            context = {
+            'holiday': holiday,
+            'cmp1':cmp1
+            }
+        return render(request, 'app1/holiday_edit.html', context)
+
+def delete_holiday(request, holiday_id):
+    try:
+        holiday = holidays.objects.get(hid=holiday_id)
+        year = holiday.start_date.year
+        month = holiday.start_date.month
+        holiday.delete()
+        
+        if holidays.objects.filter(start_date__year=year, start_date__month=month).exists():
+            return redirect('view_holidays', year=year, month=month)
+        else:
+            return redirect('holidayss')
+    except holidays.DoesNotExist:
+
+        return redirect('holidayss')
 
 ##end#
 
@@ -44684,6 +44717,63 @@ def attendance_addpage(request):
         }
         return render(request,'app1/attendance_add.html',context)
     return redirect('save_attendance')
+
+def attendance_view(request, employee_name, year, month):
+    if 'uid' in request.session:
+        if request.session.has_key('uid'):
+            uid = request.session['uid']
+        else:
+            return redirect('/')
+
+        cmp1 = company.objects.get(id=request.session['uid'])
+
+        # Filter attendance records for the selected employee and month
+        attendance_data = attendance.objects.filter(
+            cid=cmp1,
+            date__year=year,
+            date__month=month,
+            employee=employee_name.replace("_", " ")  # Replace underscores with spaces
+        )
+
+        # Create a dictionary to store employee attendance details
+        employee_attendance = {
+            'employee_name': employee_name.replace("_", " "),  # Replace underscores with spaces
+            'year': year,
+            'month': month,
+            'working_days': 0,
+            'holidays': 0,
+            'absent_days': 0,
+        }
+
+        for entry in attendance_data:
+            if entry.status == 'Absent':
+                employee_attendance['absent_days'] += 1
+
+        # Calculate total holidays for the selected month and year using the holidays table
+        holidays_data = holidays.objects.filter(
+            cid=cmp1,
+            start_date__year=year,
+            start_date__month=month
+        )
+        total_holidays = 0
+        for holiday in holidays_data:
+            total_holidays += (holiday.end_date - holiday.start_date).days + 1
+
+        employee_attendance['holidays'] = total_holidays
+
+        # Calculate working days for the selected month and year
+        _, last_day = monthrange(int(year), int(month))
+        employee_attendance['working_days'] = last_day - total_holidays
+
+        context = {
+            'cmp1': cmp1,
+            'employee_attendance': employee_attendance,
+        }
+
+        return render(request, 'app1/attendance_view.html', context)
+
+    return redirect('/')
+
 
 
 @login_required(login_url='regcomp')

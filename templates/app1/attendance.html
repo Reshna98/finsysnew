@@ -76,7 +76,8 @@
                             </thead>
                             <tbody id="table">
                                 {% for entry in employee_attendance %}
-                                <tr>
+                                <!-- <tr> -->
+                                     <tr data-employee="{{ entry.employee }}" data-year="{{ entry.year }}" data-month="{{ entry.month }}" data-working-days="{{ entry.working_days }}" data-holidays="{{ entry.holidays }}" data-absent-days="{{ entry.absent_days }}" class="attendance-row">
                                     <td class="text-center">{{ forloop.counter }}</td>
                                     <td class="text-center">{{ entry.employee }}</td>
                                     <td class="text-center">{{ entry.year }}</td>
@@ -92,31 +93,7 @@
                     
                     
 
-                    <!-- <div class="container-fluid">
-                        <table class="table table-responsive-md mt-4" id="table1">
-                            <thead>
-                            <tr>
-                                <th class="text-center">Employee Name</th>
-                                <th class="text-center">Year</th>
-                                <th class="text-center">Month</th>
-                                <th class="text-center">Working Days</th>
-                                <th class="text-center">Holidays Days</th>
-                                <th class="text-center">Total Absent</th>
-                            </tr>
-                            </thead>
-                            <tbody  id="table">
-                                {% for entry in employee_attendance %}
-                                <tr>
-                                    <td class="text-center">{{ entry.employee }}</td>
-                                    <td class="text-center">{{ entry.year }}</td>
-                                    <td class="text-center">{{ entry.month }}</td>
-                                    <td class="text-center">{{ entry.working_days }}</td>
-                                    <td class="text-center">{{ entry.holidays }}</td>
-                                    <td class="text-center">{{ entry.status }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table> -->
+                   
                     </div>
                 </div>
             </div>
@@ -142,22 +119,7 @@
             XLSX.writeFile(wb, fn || ('holidays.' + (type || 'xlsx')));
     }
 </script>
- 
-<script>
-    $(document).ready(function () {
-        // Handle row clicks
-        $('.holiday-row').click(function () {
-            var year = $(this).data('year');
-            var month = $(this).data('month');
-            console.log(`Year: ${year}, Month: ${month}`);
 
-            var url = `view_holidays/${year}/${month}/`;
-    
-            // Navigate to the selected year and month page
-            window.location.href = url;
-        });
-    });
-    </script>
 <script>
     // Function to sort table rows by month (ascending order)
 // Function to sort table rows by month (ascending order)
@@ -198,7 +160,30 @@ function sortTableByYearAsc() {
 }
 
 </script>
+<script>
+    $(document).ready(function () {
+        // Handle row clicks
+        $('.attendance-row').click(function () {
+            var $row = $(this);
+
+            var employee = $row.data('employee')// Replace spaces with underscores
+            var year = $row.data('year');
+            var month = $row.data('month');
+            var workingDays = $row.data('working-days');
+            var holidays = $row.data('holidays');
+            var absentDays = $row.data('absent-days');
+
+            console.log(`Employee: ${employee}, Year: ${year}, Month: ${month}`);
+            console.log(`Working Days: ${workingDays}, Holidays: ${holidays}, Absent Days: ${absentDays}`);
+
+            var url = `attendance_view/${year}/${month}/${employee}/`;
     
+            // Navigate to the selected year, month, and employee page
+            window.location.href = url;
+        });
+    });
+</script>
+
 
 {% endblock %}
 

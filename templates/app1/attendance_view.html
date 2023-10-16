@@ -441,7 +441,7 @@
                                
                                    
                                 <li class="nav-item">
-                                    <a class="nav-link text-light btn" role="button" href="{% url 'generate_pdf' year=year month=month %}">
+                                    <a class="nav-link text-light btn" role="button" href="">
                                         <i class="fa fa-file-pdf-o">Pdf</i>
                                     </a>
                                 </li>
@@ -521,8 +521,8 @@
                       <td class="text-center">{{ holiday.end_date }}</td>
                       <td class="text-center">{{ holiday.name }}</td>
                       <td class="text-center">
-                        <a href="{% url 'edit_holiday' holiday.hid %}" class="btn btn-sm btn-info">Edit</a>
-                        <a href="{% url 'delete_holiday' holiday.hid %}" class="btn btn-sm btn-danger">Delete</a>
+                        <a href="" class="btn btn-sm btn-info">Edit</a>
+                        <a href="" class="btn btn-sm btn-danger">Delete</a>
                     </td>
                     </tr>
                     {%endfor%}
