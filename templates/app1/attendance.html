@@ -77,7 +77,7 @@
                             <tbody id="table">
                                 {% for entry in employee_attendance %}
                                 <!-- <tr> -->
-                                     <tr data-employee="{{ entry.employee }}" data-year="{{ entry.year }}" data-month="{{ entry.month }}" data-working-days="{{ entry.working_days }}" data-holidays="{{ entry.holidays }}" data-absent-days="{{ entry.absent_days }}" class="attendance-row">
+                                    <tr data-employee="{{ entry.employee }}" data-year="{{ entry.year }}" data-month="{{ entry.month }}" class="attendance-row">
                                     <td class="text-center">{{ forloop.counter }}</td>
                                     <td class="text-center">{{ entry.employee }}</td>
                                     <td class="text-center">{{ entry.year }}</td>
@@ -165,24 +165,21 @@ function sortTableByYearAsc() {
         // Handle row clicks
         $('.attendance-row').click(function () {
             var $row = $(this);
-
-            var employee = $row.data('employee')// Replace spaces with underscores
+    
+            var employee = $row.data('employee').replace(/ /g, '_'); // Replace spaces with underscores
             var year = $row.data('year');
             var month = $row.data('month');
-            var workingDays = $row.data('working-days');
-            var holidays = $row.data('holidays');
-            var absentDays = $row.data('absent-days');
-
+    
             console.log(`Employee: ${employee}, Year: ${year}, Month: ${month}`);
-            console.log(`Working Days: ${workingDays}, Holidays: ${holidays}, Absent Days: ${absentDays}`);
-
-            var url = `attendance_view/${year}/${month}/${employee}/`;
+    
+            var url = `/app1/attendance_view/${year}/${month}/${employee}/`;
     
             // Navigate to the selected year, month, and employee page
             window.location.href = url;
         });
     });
-</script>
+    </script>
+    
 
 
 {% endblock %}

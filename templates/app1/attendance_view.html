@@ -423,7 +423,7 @@
         <div class="card radius-15">
             <div class="card-body">
                 <div class="card-title">
-                    <center><h2 class="mb-0">HOLIDAYS VIEW</h2></center>
+                    <center><h2 class="mb-0">ATTENDANCE VIEW</h2></center>
                     <hr>
                     <a style="padding: 10px; cursor: pointer; font-size: large;" onclick="Calender()">Calender</a>
                     <a style="padding: 10px; cursor: pointer; font-size: large;" onclick="Overview()" >Overview</a>
@@ -466,66 +466,72 @@
                 <!-- <h3 style="text-align: center;">Holidays for {{ month }} {{ year }}</h3> -->
             
                 <!-- Display the FullCalendar -->
-                <div id="holiday-calendar" class="p-3"></div>
+                <div id="attendance-calendar" class="p-3"></div>
             </div>
         </div>
         <div class="container my-4" style="background-color: white; display: none;" id="whatToPrint" >
             <div class="col-md-12 p-3">
-            <h4 style="color: #000000; text-align: center;">Holidays for {{ month }} {{ year }}</h4>
-            <p style="color: #000000; text-align: center;">Total Holidays: {{ total_holidays }} | Working Days: {{ total_working_days }}</p>
-           </div>
-        
-            <table class="table table-hover table-bordered">
-                <thead>
-                    <tr>
-                        <th class="text-center" style="color:#000">Start Date</th>
-                        <th class="text-center" style="color:#000">End Date</th>
-                        <th class="text-center" style="color:#000">Holiday Name</th>
-                      
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for holiday in holiday_data %}
-                    <tr>
-                      <td class="text-center" style="color:#000">{{ holiday.start_date }}</td>
-                      <td class="text-center" style="color:#000">{{ holiday.end_date }}</td>
-                      <td class="text-center" style="color:#000">{{ holiday.name }}</td>
-                    </tr>
-                    {%endfor%}
-                </tbody>
-            </table>
+      
+            <h4 style="color: #000000; text-align: center;">Attendance for {{ employee_attendance.month }} {{ employee_attendance.year }}</h4>
+            <p style="color: #000000; text-align: center;">Total Holidays: {{ employee_attendance.holidays }} | Working Days: {{ employee_attendance.working_days }}|
+                Absent Days: {{ employee_attendance.absent_days }}</p>
+        </div>
+    
+        <table class="table table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th class="text-center" style="color:#000">Date</th>
+                    <th class="text-center" style="color:#000">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in attendance_data %}
+                <tr>
+                    <td class="text-center" style="color:#000">{{ entry.date }}</td>
+                    <td class="text-center" style="color:#000">{{ entry.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
 
 
         </div>
         <div class="container my-4" style="display: none;" id="overview" >
             <div class="col-md-12 p-3">
-            <h4 style=" text-align: center;">Holidays for {{ month }} {{ year }}</h4>
-            <p style=" text-align: center;">Total Holidays: {{ total_holidays }} | Working Days: {{ total_working_days }}</p>
+            
+                <h4 class="text-center">Attendance for {{ employee_attendance.month }} {{ employee_attendance.year }}</h4>
+                <p class="text-center">
+                    Total Holidays: {{ employee_attendance.holidays }} |
+                    Working Days: {{ employee_attendance.working_days }} |
+                    Absent Days: {{ employee_attendance.absent_days }}
+                </p>
            </div>
         
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th class="text-center" >Start Date</th>
-                        <th class="text-center" >End Date</th>
-                        <th class="text-center" >Holiday Name</th>
+                      
+                        <th class="text-center" >Date</th>
+                        <th class="text-center" >Status</th>
                         <th class="text-center" >Actions</th>
                       
                     </tr>
                 </thead>
                 <tbody>
-                    {% for holiday in holiday_data %}
-                    <tr>
-                      <td class="text-center">{{ holiday.start_date }}</td>
-                      <td class="text-center">{{ holiday.end_date }}</td>
-                      <td class="text-center">{{ holiday.name }}</td>
-                      <td class="text-center">
-                        <a href="" class="btn btn-sm btn-info">Edit</a>
-                        <a href="" class="btn btn-sm btn-danger">Delete</a>
-                    </td>
-                    </tr>
-                    {%endfor%}
+                   
+                        {% for entry in attendance_data %}
+                        <tr>
+                            <td class="text-center" >{{ entry.date }}</td>
+                            <td class="text-center" >{{ entry.status }}</td>
+                            <td class="text-center">
+                                <a href="" class="btn btn-sm btn-info">Edit</a>
+                                <a href="" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                    
                 </tbody>
             </table>
 
@@ -586,112 +592,34 @@
 
     }
     </script>
-
-<!-- <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('holiday-calendar');
-        var events = [
-            {% for holiday in holiday_data %}
-            {
-                title: "{{ holiday.name }}",
-                start: "{{ holiday.start_date|date:'Y-m-d' }}",
-                end: "{{ holiday.end_date|date:'Y-m-d' }}"
-            },
-            {% endfor %}
-        ];
-
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            events: events,
-            initialView: 'dayGridMonth'
-        });
-        calendar.render();
-    });
-</script> -->
-<!-- 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('holiday-calendar');
+        var calendarEl = document.getElementById('attendance-calendar');
         var events = [
-            {% for holiday in holiday_data %}
+            // Add holidays as events
+            {% for holiday in holidays_data %}
             {
                 title: "{{ holiday.name }}",
                 start: "{{ holiday.start_date|date:'Y-m-d' }}",
-                end: "{{ holiday.end_date|date:'Y-m-d' }}"
+                end: "{{ holiday.end_date|date:'Y-m-d' }}",
+                // color: 'red',  // Set a color for holidays
+                textColor: 'white'  // Set text color
+            },
+            {% endfor %}
+            // Add absent days as events
+            {% for entry in attendance_data %}
+            {
+                title: "Absent",
+                start: "{{ entry.date|date:'Y-m-d' }}",
+                color: 'blue',  // Set a color for absent days
+                textColor: 'white'  // Set text color
             },
             {% endfor %}
         ];
 
-        // Determine the month and year of the holidays
-        var firstHoliday = new Date(events[0].start);
-        var holidayYear = firstHoliday.getFullYear();
-        var holidayMonth = firstHoliday.getMonth() + 1;  // Add 1 to match JavaScript's zero-based months
-
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            events: events,
-            initialView: 'dayGridMonth',
-            // Set the initial date to the month and year of the holidays
-            initialDate: `${holidayYear}-${holidayMonth}`
-        });
-        calendar.render();
-    });
-</script> -->
-<!-- <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('holiday-calendar');
-    var events = [
-        {% for holiday in holiday_data %}
-        {
-            title: "{{ holiday.name }}",
-            start: "{{ holiday.start_date|date:'Y-m-d' }}",
-            end: "{{ holiday.end_date|date:'Y-m-d' }}",  // Include the end date
-        },
-        {% endfor %}
-    ];
-
-    // Find the first and last holiday dates
-    var firstHoliday = new Date(events[0].start);
-    var lastHoliday = new Date(events[events.length - 1].end);  // Use 'end' instead of 'start'
-
-    // Calculate the month and year for the initial view
-    var initialDate = new Date(firstHoliday);
-    initialDate.setDate(1);  // Set the day to the 1st of the month
-
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        events: events,
-        initialView: 'dayGridMonth',
-        // Set the initial date to the month and year of the holidays
-        initialDate: initialDate
-    });
-    calendar.render();
-});
-</script> -->
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('holiday-calendar');
-        var events = [
-            {% for holiday in holiday_data %}
-            {
-                title: "{{ holiday.name }}",
-                start: "{{ holiday.start_date|date:'Y-m-d' }}",
-                end: "{{ holiday.end_date|date:'Y-m-d' }}",  // Include the end date
-            },
-            {% endfor %}
-        ];
-
-        // Modify the end date for each event to include the end date
-        for (var i = 0; i < events.length; i++) {
-            var event = events[i];
-            var endDate = new Date(event.end);
-            endDate.setDate(endDate.getDate() + 1); // Extend the end date by one day
-            event.end = endDate.toISOString().split('T')[0];
-        }
-
-        // Find the first and last holiday dates
+        // Determine the month and year of the events
         var firstHoliday = new Date(events[0].start);
         var lastHoliday = new Date(events[events.length - 1].end);
-
-        // Calculate the month and year for the initial view
         var initialDate = new Date(firstHoliday);
         initialDate.setDate(1);
 
@@ -706,6 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-   
-    {% endif %}
-    {% endblock %}
+
+
+{% endif %}
+{% endblock %}

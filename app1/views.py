@@ -44718,62 +44718,61 @@ def attendance_addpage(request):
         return render(request,'app1/attendance_add.html',context)
     return redirect('save_attendance')
 
-def attendance_view(request, employee_name, year, month):
-    if 'uid' in request.session:
-        if request.session.has_key('uid'):
-            uid = request.session['uid']
-        else:
-            return redirect('/')
 
-        cmp1 = company.objects.get(id=request.session['uid'])
 
-        # Filter attendance records for the selected employee and month
-        attendance_data = attendance.objects.filter(
-            cid=cmp1,
-            date__year=year,
-            date__month=month,
-            employee=employee_name.replace("_", " ")  # Replace underscores with spaces
-        )
+def attendance_view(request, year, month, employee):
+    month_numeric = datetime.strptime(month, "%B").month
+    cmp1 = company.objects.get(id=request.session['uid'])
 
-        # Create a dictionary to store employee attendance details
-        employee_attendance = {
-            'employee_name': employee_name.replace("_", " "),  # Replace underscores with spaces
-            'year': year,
-            'month': month,
-            'working_days': 0,
-            'holidays': 0,
-            'absent_days': 0,
-        }
+    attendance_data = attendance.objects.filter(
+        cid=cmp1,
+        date__year=year,
+        date__month=month_numeric,
+        employee=employee.replace("_", " ")
+    )
 
-        for entry in attendance_data:
-            if entry.status == 'Absent':
-                employee_attendance['absent_days'] += 1
+    employee_attendance = {
+        'employee_name': employee.replace("_", " "),
+        'year': year,
+        'month': month,
+        'working_days': 0,
+        'holidays': 0,
+        'absent_days': 0,
+    }
 
-        # Calculate total holidays for the selected month and year using the holidays table
-        holidays_data = holidays.objects.filter(
-            cid=cmp1,
-            start_date__year=year,
-            start_date__month=month
-        )
-        total_holidays = 0
-        for holiday in holidays_data:
-            total_holidays += (holiday.end_date - holiday.start_date).days + 1
+    for entry in attendance_data:
+        if entry.status == 'Absent':
+            employee_attendance['absent_days'] += 1
 
-        employee_attendance['holidays'] = total_holidays
+    # Calculate total holidays for the selected month and year using the holidays table
+    holidays_data = holidays.objects.filter(
+        cid=cmp1,
+        start_date__year=year,
+        start_date__month=month_numeric
+    )
+    total_holidays = 0
+    for holiday in holidays_data:
+        start_date = holiday.start_date
+        end_date = holiday.end_date
+        date_range = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+        total_holidays += len(date_range)
 
-        # Calculate working days for the selected month and year
-        _, last_day = monthrange(int(year), int(month))
-        employee_attendance['working_days'] = last_day - total_holidays
+    # Calculate total working days for the selected month and year
+    _, last_day = monthrange(int(year), month_numeric)
+    all_days = [date(int(year), month_numeric, day) for day in range(1, last_day + 1)]
+    total_working_days = len(all_days) - total_holidays
 
-        context = {
-            'cmp1': cmp1,
-            'employee_attendance': employee_attendance,
-        }
+    employee_attendance['holidays'] = total_holidays
+    employee_attendance['working_days'] = total_working_days
 
-        return render(request, 'app1/attendance_view.html', context)
+    context = {
+        'cmp1': cmp1,
+        'employee_attendance': employee_attendance,
+        'attendance_data':attendance_data,
+        'holidays_data':holidays_data
+    }
 
-    return redirect('/')
-
+    return render(request, 'app1/attendance_view.html', context)
 
 
 @login_required(login_url='regcomp')
