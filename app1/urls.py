@@ -1143,7 +1143,7 @@ urlpatterns = [
     # reshna-holidays
     path('holidayss',views.holidayss,name='holidayss'),
     path('addholidays',views.addholidays,name='addholidays'),
-    # path('generate_pdf/<int:year>/<str:month>/',views.generate_pdf,name='generate_pdf'),#remove
+    # path('generate_pdf',views.generate_pdf,name='generate_pdf'),#remove
     path('generate_pdf/<int:year>/<str:month>/',views.generate_pdf,name='generate_pdf'),#new
     path('holiday_addpage',views.holiday_addpage,name='holiday_addpage'),#new
     path('view_holidays/<int:year>/<str:month>/',views.view_holidays,name='view_holidays'),#new
@@ -1152,12 +1152,17 @@ urlpatterns = [
 
     # reshna-attendance
     path('attendancepagee/',views.attendancepagee,name='attendancepagee'),
-    path('save_attendance',views.save_attendance,name='save_attendance'),
+    path('save_attendance',views.save_attendance,name='save_attendance'),#
     # path('get_attendance_details',views.get_attendance_details,name='get_attendance_details'),#remove
     # path('get_calendar_events',views.get_calendar_events,name='get_calendar_events'),#remove
     # path('get_counts',views.get_counts,name='get_counts'),#remove
     path('attendance_addpage',views.attendance_addpage,name='attendance_addpage'),#new
     path('attendance_view/<int:year>/<str:month>/<str:employee>/',views.attendance_view,name='attendance_view'),#new
+    path('pdf_attendance/<int:year>/<str:month>/<str:employee>/', views.pdf_attendance, name='pdf_attendance'),#new
+    path('edit_attendance/<int:attendance_id>/', views.edit_attendance, name='edit_attendance'),#new
+    path('delete_attendance/<int:attendance_id>/', views.delete_attendance, name='delete_attendance'),#new
+    path('attendance_editpage',views.attendance_editpage,name='attendance_editpage'),#new
+   
     # path('',views.,name=''),
     # path('',views.,name=''),
     # path('',views.,name=''),

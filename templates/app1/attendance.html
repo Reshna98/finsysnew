@@ -124,7 +124,7 @@
     // Function to sort table rows by month (ascending order)
 // Function to sort table rows by month (ascending order)
 function sortTableByMonthAsc() {
-    var rows = $('tr.holiday-row').get();
+    var rows = $('tr.attendance-row').get();
     rows.sort(function (a, b) {
         var monthA = $(a).data('month');
         var monthB = $(b).data('month');
@@ -148,7 +148,7 @@ function sortTableByMonthAsc() {
 
 // Function to sort table rows by year (ascending order)
 function sortTableByYearAsc() {
-    var rows = $('tr.holiday-row').get();
+    var rows = $('tr.attendance-row').get();
     rows.sort(function (a, b) {
         var yearA = $(a).data('year');
         var yearB = $(b).data('year');

@@ -44388,6 +44388,7 @@ def sales_by_item(request):
 #     }
 
 #     return render(request, 'app1/holidays.html', context)
+#reshna-holidays
 from datetime import date, datetime
 from calendar import monthrange,month_name
 from collections import defaultdict
@@ -44769,140 +44770,130 @@ def attendance_view(request, year, month, employee):
         'cmp1': cmp1,
         'employee_attendance': employee_attendance,
         'attendance_data':attendance_data,
-        'holidays_data':holidays_data
+        'holidays_data':holidays_data,
+        'year': year,  # Make sure year, month, and employee are in the context
+        'month': month,
+        'employee': employee,
     }
 
     return render(request, 'app1/attendance_view.html', context)
 
+def pdf_attendance(request, year, month, employee):
+    month_numeric = datetime.strptime(month, "%B").month
+    cmp1 = company.objects.get(id=request.session['uid'])
 
-@login_required(login_url='regcomp')
-def get_attendance_details(request):
+    attendance_data = attendance.objects.filter(
+        cid=cmp1,
+        date__year=year,
+        date__month=month_numeric,
+        employee=employee.replace("_", " ")
+    )
+
+    employee_attendance = {
+        'employee_name': employee.replace("_", " "),
+        'year': year,
+        'month': month,
+        'working_days': 0,
+        'holidays': 0,
+        'absent_days': 0,
+    }
+
+    for entry in attendance_data:
+        if entry.status == 'Absent':
+            employee_attendance['absent_days'] += 1
+
+    # Calculate total holidays for the selected month and year using the holidays table
+    holidays_data = holidays.objects.filter(
+        cid=cmp1,
+        start_date__year=year,
+        start_date__month=month_numeric
+    )
+    total_holidays = 0
+    for holiday in holidays_data:
+        start_date = holiday.start_date
+        end_date = holiday.end_date
+        date_range = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+        total_holidays += len(date_range)
+
+    # Calculate total working days for the selected month and year
+    _, last_day = monthrange(int(year), month_numeric)
+    all_days = [date(int(year), month_numeric, day) for day in range(1, last_day + 1)]
+    total_working_days = len(all_days) - total_holidays
+
+    employee_attendance['holidays'] = total_holidays
+    employee_attendance['working_days'] = total_working_days
+    template_path = 'app1/pdf_attendance.html'
+    context = {
+        'cmp1': cmp1,
+        'employee_attendance': employee_attendance,
+        'attendance_data':attendance_data,
+        'holidays_data':holidays_data,
+        'year': year,
+        'month': month,
+        'employee':employee
+    }
+
+  
+    
+    fname='attendance'
+   
+    response = HttpResponse(content_type='application/pdf')
+    #response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+    response['Content-Disposition'] =f'attachment; filename={fname}.pdf'
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # create a pdf
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
+    
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+def edit_attendance(request, attendance_id):
     if 'uid' in request.session:
-        if request.session.has_key('uid'):
-            uid = request.session['uid']
-        else:
-            return redirect('/')
-        
-        comp = company.objects.get(id=request.session["uid"])
+        try:
+            cmp1 = company.objects.get(id=request.session['uid'])
+            attendance_record = attendance.objects.get(atid=attendance_id)
 
-        # Get the employee_id from the POST request data
-        employee_id = request.POST.get('employee1_id')
+            if request.method == 'POST':
+                date = request.POST.get('date')
+                status = request.POST.get('status')
+                employee_id = request.POST.get('employee_id')
+                attendance_record.date = date
+                attendance_record.status = status
+                attendance_record.employee = employee_id
+                attendance_record.save()
 
-        # Query the Attendance model to get details for the selected employee
-        attendance_details = attendance.objects.filter(employee=employee_id, cid=comp)
+                return redirect('attendancepagee')
 
-        # Prepare the data as a list of dictionaries
-        attendance_list = []
-        for attendance_entry in attendance_details:
-            attendance_dict = {
-                'date': attendance_entry.date.strftime('%Y-%m-%d'),  # Format the date as needed
-                'status': attendance_entry.status,
-            }
-            attendance_list.append(attendance_dict)
-
-        # Return the attendance details as a JSON response
-        return JsonResponse({'attendance_details': attendance_list}, safe=False)
-
+            return render(request, 'app1/attendance_edit.html', {'cmp1': cmp1, 'attendance_record': attendance_record,})
+        except attendance.DoesNotExist:
+            return HttpResponse("Attendance record not found.")
     return redirect('/')
 
-
-def get_calendar_events(request):
+def attendance_editpage(request):
     if 'uid' in request.session:
         if request.session.has_key('uid'):
             uid = request.session['uid']
         else:
             return redirect('/')
-        
-        comp = company.objects.get(id=request.session["uid"])
+        cmp1 = company.objects.get(id=request.session['uid'])
+        employees = payrollemployee.objects.filter(cid=cmp1)
+        context = {
+                    'cmp1': cmp1,
+                    'employees':employees}
+        return render(request,'app1/attendance_edit.html',context)
+    return redirect('save_attendance')
 
-
-        employee_id = request.GET.get('employee_id')  
-        if employee_id:
-        
-            attendance_details = attendance.objects.filter(employee=employee_id, cid=comp)
-
-            holidays_list = holidays.objects.filter(cid=comp)
-
-        
-            events = []
-
-            for attendance_entry in attendance_details:
-                events.append({
-                'title': attendance_entry.status,
-                'start': attendance_entry.date.strftime('%Y-%m-%d'),
-                'color': 'green', 
-                 })
-
-            for holiday in holidays_list:
-                events.append({
-                'title': holiday.name,
-                'start': holiday.start_date.strftime('%Y-%m-%d'),
-                'end': holiday.end_date.strftime('%Y-%m-%d'),
-                'color': 'red',  
-                 })
-
-            return JsonResponse(events, safe=False)
-
-        return JsonResponse([], safe=False) 
-
-def get_counts(request):
+def delete_attendance(request, attendance_id):
     if 'uid' in request.session:
-        if request.session.has_key('uid'):
-            uid = request.session['uid']
-        else:
-            return redirect('/')
-        
-        comp = company.objects.get(id=request.session["uid"])
-        if request.method == 'GET':
-            employee_id = request.GET.get('employee_id')
-            total_holidays = holidays.objects.filter(cid=comp,hid__isnull=False).count()
-            present_count = attendance.objects.filter(employee=employee_id, status='Present').count()
-            absent_count = attendance.objects.filter(employee=employee_id, status='Absent').count()
-
-            data = {
-            'total_holidays': total_holidays,
-            'present_count': present_count,
-            'absent_count': absent_count,
-            }
-
-            return JsonResponse(data)
-
-
-from xhtml2pdf import pisa
-from django.template.loader import get_template
-from bs4 import BeautifulSoup
-from django.template import  Context,Template
-
-def attendance_pdf(request):
-    cmp1 = company.objects.get(id=request.session['uid'])
-    holidays_data = holidays.objects.filter(cid=cmp1)
-    employees = payrollemployee.objects.filter(cid=cmp1)
-    script_directory = os.path.dirname(os.path.abspath(__file__))
-    template_filename = 'app1/attendance.html'
-    template_path = os.path.join('templates', template_filename)
-
-    with open(template_path, 'r') as file:
-        html_content = file.read()
-
-    soup = BeautifulSoup(html_content, 'html.parser')
-    section = soup.find('div', class_='prints')
-    section_html = section.prettify()
-    template = Template(section_html)
-
-    context = {
-    'holidays':holidays_data,
-         'cmp1':cmp1,
-         'employees':employees,
-    }
-    html = template.render(Context(context))
-
-    fname ='attendance'
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename={fname}.pdf'
-
-    pisa_status = pisa.CreatePDF(html, dest=response)
-    if pisa_status.err:
-        return HttpResponse('We had some errors <pre>' + html + '</pre>')
-    
-    return response
-        
+        try:
+            attendance_record = attendance.objects.get(atid=attendance_id)
+            attendance_record.delete()
+            return redirect('attendancepagee')
+        except attendance.DoesNotExist:
+            return HttpResponse("Attendance record not found.")
+    return redirect('/')
+##end#
