@@ -44596,19 +44596,33 @@ def edit_holiday(request, holiday_id):
             }
         return render(request, 'app1/holiday_edit.html', context)
 
+# def delete_holiday(request, holiday_id):
+#     try:
+#         holiday = holidays.objects.get(hid=holiday_id)
+#         year = holiday.start_date.year
+#         month = holiday.start_date.month
+#         holiday.delete()
+        
+#         if holidays.objects.filter(start_date__year=year, start_date__month=month).exists():
+#             return redirect('view_holidays', year=year, month=month)
+#         else:
+#             return redirect('holidayss')
+#     except holidays.DoesNotExist:
+
+#         return redirect('holidayss')
 def delete_holiday(request, holiday_id):
     try:
         holiday = holidays.objects.get(hid=holiday_id)
         year = holiday.start_date.year
         month = holiday.start_date.month
+        month_name = datetime.strptime(str(month), "%m").strftime("%B") 
         holiday.delete()
-        
+
         if holidays.objects.filter(start_date__year=year, start_date__month=month).exists():
-            return redirect('view_holidays', year=year, month=month)
+            return redirect('view_holidays', year=year, month=month_name)
         else:
             return redirect('holidayss')
     except holidays.DoesNotExist:
-
         return redirect('holidayss')
 
 ##end#

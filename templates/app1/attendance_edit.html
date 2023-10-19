@@ -55,7 +55,7 @@
                         <div class="col-md-6 mt-2">
                             <label for="status">Status</label>
                             <select class="form-control" id="status" name="status" required>
-                                <option value="Present" {% if attendance_record and attendance_record.status == 'Present' %}selected{% endif %}>Present</option>
+                                <!-- <option value="Present" {% if attendance_record and attendance_record.status == 'Present' %}selected{% endif %}>Present</option> -->
                                 <option value="Absent" {% if attendance_record and attendance_record.status == 'Absent' %}selected{% endif %}>Absent</option>
                             </select>
                         </div>
