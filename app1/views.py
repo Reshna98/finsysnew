@@ -44775,7 +44775,7 @@ def attendance_view(request, year, month, employee):
     # Calculate total working days for the selected month and year
     _, last_day = monthrange(int(year), month_numeric)
     all_days = [date(int(year), month_numeric, day) for day in range(1, last_day + 1)]
-    total_working_days = len(all_days) - total_holidays
+    total_working_days = len(all_days) - total_holidays - employee_attendance['absent_days']
 
     employee_attendance['holidays'] = total_holidays
     employee_attendance['working_days'] = total_working_days
@@ -44832,7 +44832,7 @@ def pdf_attendance(request, year, month, employee):
     # Calculate total working days for the selected month and year
     _, last_day = monthrange(int(year), month_numeric)
     all_days = [date(int(year), month_numeric, day) for day in range(1, last_day + 1)]
-    total_working_days = len(all_days) - total_holidays
+    total_working_days = len(all_days) - total_holidays - employee_attendance['absent_days']
 
     employee_attendance['holidays'] = total_holidays
     employee_attendance['working_days'] = total_working_days
